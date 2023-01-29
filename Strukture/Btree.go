@@ -11,7 +11,7 @@ func main() {
 	fmt.Println("ovde sam 2")
 	btree.add("9", []byte("a"))
 	fmt.Println(btree.root)
-	// btree.add("1", []byte("a"))
+	btree.add("1", []byte("a"))
 	// btree.add("7", []byte("a"))
 	// btree.add("1", []byte("ponovo isti kljuc"))
 	// btree.add("4", []byte("a"))
@@ -60,10 +60,15 @@ func (btree *Btree) findElement(key string) (bool, *Node) {
 	for i := 0; i <= btree.height; i++ {
 		trenutnoDete := trenutniCvor.elements[k]
 		sledeceDete := trenutniCvor.elements[k+1]
-		for z := 0; z < trenutniCvor.num_of_elem; z++ {
+		for z := 0; z < trenutniCvor.num_of_elem-1; z++ {
+			trenutnoDete = trenutniCvor.elements[k]
+			sledeceDete = trenutniCvor.elements[k+1]
 			//ako je ovaj dete tjt nasli smo
 			if trenutnoDete.key == key {
 				return true, trenutnoDete
+			}
+			if sledeceDete == nil {
+				break
 			}
 			//ako je sledeci dete tjt nasli smo
 			if sledeceDete.key == key {
@@ -91,10 +96,14 @@ func (btree *Btree) findElement(key string) (bool, *Node) {
 		}
 		//ako je sl dete nil onda ili nema deteta ili je ,,desno"
 		if key > trenutnoDete.key {
-			if trenutniCvor.children[k] == nil {
-				return false, nil
+			if k < 3 {
+				if trenutniCvor.children[k] == nil {
+					return false, nil
+				}
+				trenutniCvor = *trenutniCvor.children[k+1]
+			} else if k == 3 {
+				trenutniCvor = *trenutniCvor.children[k]
 			}
-			trenutniCvor = *trenutniCvor.children[k+1]
 			k = 0
 		}
 	}
@@ -118,10 +127,13 @@ func (btree *Btree) add(key string, value []byte) {
 		fmt.Println(trenutniCvor.children)
 		//idemo sve do lista
 		for trenutniCvor.children[0] != nil {
+			fmt.Println(trenutniCvor)
 			fmt.Println("ovo nije list")
 			for i := 0; i < trenutniCvor.num_of_elem-1 && trenutniCvor.elements[i] != nil; i++ {
 				//ako je trenutni cvoric koji gledamo veci od onog sto trazimo idemo na dete gde su elem manji
+				fmt.Println("usao u for")
 				if trenutniCvor.elements[i].key > key {
+					fmt.Println("usao u if")
 					roditelj = trenutniCvor
 					pokaz_na_roditelja = pokaz_na_trenutni_cvor
 					trenutniCvor = *trenutniCvor.children[i]
@@ -134,9 +146,9 @@ func (btree *Btree) add(key string, value []byte) {
 			//ako ga nismo pronasli mora biti poslednje dete jer je onda kljuc veci od elem koje smo gledali
 			if !pronadjen {
 				roditelj = trenutniCvor
-				pokaz_na_roditelja = pokaz_na_trenutni_cvor
 				trenutniCvor = *trenutniCvor.children[trenutniCvor.num_of_elem]
 				pokaz_na_trenutni_cvor = trenutniCvor.children[trenutniCvor.num_of_elem]
+				pokaz_na_roditelja = pokaz_na_trenutni_cvor
 				red_tr_cvora_kod_roditelja = trenutniCvor.num_of_elem
 			}
 			pronadjen = false
@@ -154,6 +166,7 @@ func (btree *Btree) add(key string, value []byte) {
 			if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
 				//onda smo na korenu treba da izmenimo koren
 				pokaz_na_trenutni_cvor = &trenutniCvor
+				pokaz_na_roditelja = pokaz_na_trenutni_cvor
 				btree.root = pokaz_na_trenutni_cvor
 			} else {
 				//inace menjamo kod roditelja pokazivac na dete koje gledamo
@@ -169,87 +182,173 @@ func (btree *Btree) add(key string, value []byte) {
 		} else {
 			fmt.Println("ima bar 1 elem")
 			fmt.Println(trenutniCvor.elements)
-			//ako nam je naredni element razlicit od nule
 			//iteriramo
-			//napravi da radi bez tog i ili dodaj u while
-			// if trenutniCvor.elements[i+1] != nil {
-			// 	fmt.Println("usli smo tamo gde se iterira za dodavanje")
-			// 	fmt.Println(i)
-			// 	if key > trenutniCvor.elements[i].key && key < trenutniCvor.elements[i+1].key {
-			// 		fmt.Println("stanje pre dodavanja")
-			// 		fmt.Println(trenutniCvor)
-			// 		trenutniCvor.elements[i] = &Node{key, value}
-			// 		trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
-			// 		trenutniCvor.max_children = trenutniCvor.num_of_elem - 1
-			// 		if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
-			// 			//onda smo na koreno
-			// 			pokaz_na_trenutni_cvor = &trenutniCvor
-			// 			btree.root = pokaz_na_trenutni_cvor
-			// 		} else {
-			// 			pokaz_na_trenutni_cvor = &trenutniCvor
-			// 			pokaz_na_roditelja.children[red_tr_cvora_kod_roditelja] = pokaz_na_trenutni_cvor
-			// 		}
-			// 		fmt.Println("stanje posle dodavanja, cvor")
-			// 		fmt.Println(trenutniCvor)
-			// 		fmt.Println("stanje posle dodavanja, pokaz na cvor")
-			// 		fmt.Println(*pokaz_na_trenutni_cvor)
-			// 	}
-			// } else {
-			// 	//imamo jedan element i treba da dodamo drugi
-			// 	if key > trenutniCvor.elements[i].key {
-			// 		//ako je veci od prethodnog dodajemo ga posle
-			// 		trenutniCvor.elements[1] = &Node{key, value}
-			// 		trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
-			// 		trenutniCvor.max_children = trenutniCvor.num_of_elem - 1
-			// 		if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
-			// 			//onda smo na koreno
-			// 			pokaz_na_trenutni_cvor = &trenutniCvor
-			// 			btree.root = pokaz_na_trenutni_cvor
-			// 		} else {
-			// 			pokaz_na_trenutni_cvor = &trenutniCvor
-			// 			pokaz_na_roditelja.children[red_tr_cvora_kod_roditelja] = pokaz_na_trenutni_cvor
-			// 		}
-			// 		fmt.Println("stanje posle dodavanja, cvor")
-			// 		fmt.Println(trenutniCvor)
-			// 		fmt.Println("stanje posle dodavanja, pokaz na cvor")
-			// 		fmt.Println(*pokaz_na_trenutni_cvor)
-			// 	} else {
-			// 		trenutniCvor.elements[1] = trenutniCvor.elements[0]
-			// 		trenutniCvor.elements[0] = &Node{key, value}
-			// 		trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
-			// 		trenutniCvor.max_children = trenutniCvor.num_of_elem - 1
-			// 		if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
-			// 			//onda smo na koreno
-			// 			pokaz_na_trenutni_cvor = &trenutniCvor
-			// 			btree.root = pokaz_na_trenutni_cvor
-			// 		} else {
-			// 			pokaz_na_trenutni_cvor = &trenutniCvor
-			// 			pokaz_na_roditelja.children[red_tr_cvora_kod_roditelja] = pokaz_na_trenutni_cvor
-			// 		}
-			// 		fmt.Println("stanje posle dodavanja, cvor")
-			// 		fmt.Println(trenutniCvor)
-			// 		fmt.Println("stanje posle dodavanja, pokaz na cvor")
-			// 		fmt.Println(*pokaz_na_trenutni_cvor)
-			// 	}
-			// }
+			menjao_se_u_petlji := false
+			for i := 0; i < 3; i++ {
+				fmt.Println("i je ", i)
+				if trenutniCvor.elements[i+1] != nil {
+					fmt.Println("usli smo tamo gde se iterira za dodavanje")
+					fmt.Println(key)
+					fmt.Println(trenutniCvor.elements[i].key)
+					fmt.Println(trenutniCvor.elements[i+1].key)
+					if key > trenutniCvor.elements[i].key && key < trenutniCvor.elements[i+1].key {
+						fmt.Println("cao")
+						fmt.Println("stanje pre dodavanja")
+						fmt.Println(trenutniCvor)
+						for m := 3; m > i; m-- {
+							trenutniCvor.elements[m] = trenutniCvor.elements[m-1]
+							fmt.Println(trenutniCvor)
+						}
+						trenutniCvor.elements[i+1] = &Node{key, value}
+						trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
+						trenutniCvor.max_children = trenutniCvor.num_of_elem - 1
+						if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
+							//onda smo na koreno
+							pokaz_na_trenutni_cvor = &trenutniCvor
+							pokaz_na_roditelja = pokaz_na_trenutni_cvor
+							btree.root = pokaz_na_trenutni_cvor
+						} else {
+							pokaz_na_trenutni_cvor = &trenutniCvor
+							pokaz_na_roditelja.children[red_tr_cvora_kod_roditelja] = pokaz_na_trenutni_cvor
+						}
+						fmt.Println("stanje posle dodavanja, cvor")
+						fmt.Println(trenutniCvor)
+						fmt.Println("stanje posle dodavanja, pokaz na cvor")
+						fmt.Println(*pokaz_na_trenutni_cvor)
+						menjao_se_u_petlji = true
+						break
+					}
+
+				} else if trenutniCvor.num_of_elem == 1 {
+					//imamo jedan element i treba da dodamo drugi
+					fmt.Println("imamo 1 elem i dodajemo drugi")
+					fmt.Println(trenutniCvor)
+					if key > trenutniCvor.elements[0].key {
+						//ako je veci od prethodnog dodajemo ga posle
+						fmt.Println("stanje pre dodavanja")
+						fmt.Println(trenutniCvor)
+						trenutniCvor.elements[1] = &Node{key, value}
+						trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
+						trenutniCvor.max_children = trenutniCvor.num_of_elem - 1
+						if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
+							//onda smo na koreno
+							pokaz_na_trenutni_cvor = &trenutniCvor
+							pokaz_na_roditelja = pokaz_na_trenutni_cvor
+							btree.root = pokaz_na_trenutni_cvor
+						} else {
+							pokaz_na_trenutni_cvor = &trenutniCvor
+							pokaz_na_roditelja.children[red_tr_cvora_kod_roditelja] = pokaz_na_trenutni_cvor
+						}
+						fmt.Println("stanje posle dodavanja, cvor")
+						fmt.Println(trenutniCvor)
+						fmt.Println("stanje posle dodavanja, pokaz na cvor")
+						fmt.Println(*pokaz_na_trenutni_cvor)
+						menjao_se_u_petlji = true
+						break
+					} else {
+						trenutniCvor.elements[1] = trenutniCvor.elements[0]
+						trenutniCvor.elements[0] = &Node{key, value}
+						trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
+						trenutniCvor.max_children = trenutniCvor.num_of_elem - 1
+						if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
+							//onda smo na koreno
+							pokaz_na_trenutni_cvor = &trenutniCvor
+							pokaz_na_roditelja = pokaz_na_trenutni_cvor
+							btree.root = pokaz_na_trenutni_cvor
+						} else {
+							pokaz_na_trenutni_cvor = &trenutniCvor
+							pokaz_na_roditelja.children[red_tr_cvora_kod_roditelja] = pokaz_na_trenutni_cvor
+						}
+						fmt.Println("stanje posle dodavanja, cvor")
+						fmt.Println(trenutniCvor)
+						fmt.Println("stanje posle dodavanja, pokaz na cvor")
+						fmt.Println(*pokaz_na_trenutni_cvor)
+						menjao_se_u_petlji = true
+						break
+					}
+				} else if (i == 2) && trenutniCvor.num_of_elem == 2 {
+					fmt.Println("treba da dodamo na kraj")
+					fmt.Println("stanje pre dodavanja")
+					fmt.Println(trenutniCvor)
+					if trenutniCvor.elements[i] == nil {
+						fmt.Println("lalala tu smo usli")
+						trenutniCvor.elements[i] = &Node{key, value}
+						trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
+						trenutniCvor.max_children = trenutniCvor.num_of_elem - 1
+
+						if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
+							//onda smo na koreno
+							pokaz_na_trenutni_cvor = &trenutniCvor
+							btree.root = pokaz_na_trenutni_cvor
+						} else {
+							pokaz_na_trenutni_cvor = &trenutniCvor
+							pokaz_na_roditelja.children[red_tr_cvora_kod_roditelja] = pokaz_na_trenutni_cvor
+						}
+						fmt.Println("stanje posle dodavanja, cvor")
+						fmt.Println(trenutniCvor)
+						fmt.Println("stanje posle dodavanja, pokaz na cvor")
+						fmt.Println(*pokaz_na_trenutni_cvor)
+						menjao_se_u_petlji = true
+						break
+					}
+				}
+			}
+			if trenutniCvor.num_of_elem == 3 && !menjao_se_u_petlji {
+				trenutniCvor.elements[3] = &Node{key, value}
+				trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
+				trenutniCvor.max_children = trenutniCvor.num_of_elem - 1
+
+				if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
+					//onda smo na koreno
+					pokaz_na_trenutni_cvor = &trenutniCvor
+					btree.root = pokaz_na_trenutni_cvor
+				} else {
+					pokaz_na_trenutni_cvor = &trenutniCvor
+					pokaz_na_roditelja.children[red_tr_cvora_kod_roditelja] = pokaz_na_trenutni_cvor
+				}
+				fmt.Println("stanje posle dodavanja, cvor")
+				fmt.Println(trenutniCvor)
+				fmt.Println("stanje posle dodavanja, pokaz na cvor")
+				fmt.Println(*pokaz_na_trenutni_cvor)
+			}
 		}
 		//ako ima vise elem nego sto sme moramo jednog da promote-ujemo gore
 		fmt.Println(trenutniCvor.num_of_elem)
 		if trenutniCvor.num_of_elem > 3 {
 			//prvo proverimo da li ima dece
 			//ako je list samo mu dodamo decu a njega smanjimo
-			fmt.Println("treba da promote-ujemo nekoga")
+			fmt.Println("treba da promote-ujemo nekoga, trenutni cvor: ")
+			fmt.Println(trenutniCvor)
+			fmt.Println("deca trenutnog: ")
 			fmt.Println(trenutniCvor.children)
-			fmt.Println("gore su deca trenutnog")
-			fmt.Println(trenutniCvor.children[0])
+
+			//NE RADI OVO DELJENJE
+			//NE MENJA DOBRO, RADI KAO DA OD 3 PRAVI 2 A TREBA OD 4 3 VALJA ISTRAZITI!!!
+
 			if trenutniCvor.children[0] == nil {
 				trenutniCvor.children[0] = &BtreeNode{make([]*Node, 4), make([]*BtreeNode, 4), 1, 1}
 				trenutniCvor.children[0].elements[0] = trenutniCvor.elements[0]
-				trenutniCvor.children[2] = &BtreeNode{make([]*Node, 4), make([]*BtreeNode, 4), 1, 1}
-				trenutniCvor.children[2].elements[2] = trenutniCvor.elements[2]
+				trenutniCvor.children[0].elements[1] = trenutniCvor.elements[2]
 				trenutniCvor.elements[0] = trenutniCvor.elements[1]
 				trenutniCvor.elements[1] = nil
 				trenutniCvor.elements[2] = nil
+				trenutniCvor.num_of_elem = 1
+				trenutniCvor.max_children = trenutniCvor.num_of_elem - 1
+				if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
+					//onda smo na koreno
+					pokaz_na_roditelja = &trenutniCvor
+					pokaz_na_trenutni_cvor = trenutniCvor.children[0]
+					btree.root = &trenutniCvor
+				} else {
+					pokaz_na_trenutni_cvor = &trenutniCvor
+					pokaz_na_roditelja.children[red_tr_cvora_kod_roditelja] = pokaz_na_trenutni_cvor
+				}
+				fmt.Println("stanje posle dodavanja, cvor")
+				fmt.Println(trenutniCvor)
+				fmt.Println("stanje posle dodavanja, pokaz na cvor")
+				fmt.Println(*pokaz_na_trenutni_cvor)
+				fmt.Println("koren")
+				fmt.Println(btree.root)
 			} else {
 				//ako ne moze tako onda treba da promote-ujemo srednji
 				if roditelj.elements[0].key > trenutniCvor.elements[1].key {
