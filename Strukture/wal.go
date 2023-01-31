@@ -2,41 +2,40 @@ package main
 
 import (
 	"encoding/binary"
-	"fmt"
 	"hash/crc32"
 	"os"
 	"strconv"
 )
 
-func main() {
-	wal := napraviWal("", 0)
-	wal.dodaj_u_wal("5", []byte("vrednost od 5"), false)
-	wal.dodaj_u_wal("7", []byte("a"), false)
-	wal.dodaj_u_wal("8", []byte("a"), false)
-	wal.dodaj_u_wal("334", []byte("a"), false)
-	wal.dodaj_u_wal("sdkfj", []byte("a"), false)
-	wal.dodaj_u_wal("fff", []byte("vrednost od fff"), false)
-	wal.dodaj_u_wal("12", []byte("vrednost od 12"), false)
-	wal.dodaj_u_wal("9", []byte("vrednost od 9"), false)
-	fmt.Println("Trazimo 9")
-	bajtovi := wal.nadji_podatak("9")
-	fmt.Println("vrednost u bajtovima: ")
-	fmt.Println(bajtovi)
-	fmt.Println("dekodirana vrednost: ")
-	fmt.Println(string(bajtovi))
-	fmt.Println("Trazimo fff")
-	bajtovi = wal.nadji_podatak("fff")
-	fmt.Println("vrednost u bajtovima: ")
-	fmt.Println(bajtovi)
-	fmt.Println("dekodirana vrednost: ")
-	fmt.Println(string(bajtovi))
-	fmt.Println("Trazimo 12")
-	bajtovi = wal.nadji_podatak("12")
-	fmt.Println("vrednost u bajtovima: ")
-	fmt.Println(bajtovi)
-	fmt.Println("dekodirana vrednost: ")
-	fmt.Println(string(bajtovi))
-}
+// func main() {
+// 	wal := napraviWal("", 0)
+// 	wal.dodaj_u_wal("5", []byte("vrednost od 5"), false)
+// 	wal.dodaj_u_wal("7", []byte("a"), false)
+// 	wal.dodaj_u_wal("8", []byte("a"), false)
+// 	wal.dodaj_u_wal("334", []byte("a"), false)
+// 	wal.dodaj_u_wal("sdkfj", []byte("a"), false)
+// 	wal.dodaj_u_wal("fff", []byte("vrednost od fff"), false)
+// 	wal.dodaj_u_wal("12", []byte("vrednost od 12"), false)
+// 	wal.dodaj_u_wal("9", []byte("vrednost od 9"), false)
+// 	fmt.Println("Trazimo 9")
+// 	bajtovi := wal.nadji_podatak("9")
+// 	fmt.Println("vrednost u bajtovima: ")
+// 	fmt.Println(bajtovi)
+// 	fmt.Println("dekodirana vrednost: ")
+// 	fmt.Println(string(bajtovi))
+// 	fmt.Println("Trazimo fff")
+// 	bajtovi = wal.nadji_podatak("fff")
+// 	fmt.Println("vrednost u bajtovima: ")
+// 	fmt.Println(bajtovi)
+// 	fmt.Println("dekodirana vrednost: ")
+// 	fmt.Println(string(bajtovi))
+// 	fmt.Println("Trazimo 12")
+// 	bajtovi = wal.nadji_podatak("12")
+// 	fmt.Println("vrednost u bajtovima: ")
+// 	fmt.Println(bajtovi)
+// 	fmt.Println("dekodirana vrednost: ")
+// 	fmt.Println(string(bajtovi))
+// }
 
 /*
    +---------------+-----------------+---------------+---------------+-----------------+-...-+--...--+

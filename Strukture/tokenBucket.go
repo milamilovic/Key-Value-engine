@@ -1,13 +1,30 @@
-package strukture
+package main
 
-import "time"
+import (
+	"time"
+)
+
+// func main() {
+// 	tb := newTokenBucket(9999999, 2, 5)
+// 	fmt.Println(tb.check(9999999))
+// 	fmt.Println(tb.check(9999999))
+// 	fmt.Println(tb.check(9999999))
+// 	fmt.Println(tb.check(9999999))
+// 	vreme := time.Now().Unix()
+// 	fmt.Println("cekamo...")
+// 	for time.Now().Unix()-vreme < 6 {
+// 	}
+// 	fmt.Println(tb.check(9999999))
+// 	fmt.Println(tb.check(9999999))
+// 	fmt.Println(tb.check(9999999))
+// }
 
 type TokenBucket struct {
 	kljuc               int //podrazumevamo da imamo jednog korisnika
 	broj_tokena         int
 	max_tokena          int
 	poslednji_timestamp int64
-	interval            int64
+	interval            int64 //sekunde
 }
 
 func newTokenBucket(key int, maxtok int, interv int64) *TokenBucket {
