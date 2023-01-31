@@ -5,17 +5,6 @@ import (
 	"fmt"
 )
 
-// func main() {
-// 	memTable := createMemTable(20, 15)
-// 	memTable.add("1", []byte("a"))
-// 	memTable.update("1", []byte("b"))
-// 	memTable.deleteElement("1")
-// 	flush := memTable.checkFlush()
-// 	if flush == true {
-// 		memTable.flush()
-// 	}
-// }
-
 type memTable struct {
 	elementi         *SkipList.SkipList
 	velicina         int //velicina skipListe

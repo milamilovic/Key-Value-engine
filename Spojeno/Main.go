@@ -1,20 +1,16 @@
 package main
 
 import (
-	// "Strukture/BloomFilter"
-	// "Strukture/CountMinSketch"
-	// "Strukture/HyperLogLog"
-	"Strukture/MemTable"
-	// "Strukture/SkipList"
+	"Strukture/SSTable"
+	"Strukture/SkipList"
 )
 
 func main() {
-	memTable := MemTable.CreateMemTable(20, 15)
-	memTable.Add("1", []byte("a"))
-	memTable.Update("1", []byte("b"))
-	memTable.DeleteElement("1")
-	flush := memTable.CheckFlush()
-	if flush == true {
-		memTable.Flush()
-	}
+	sl := SkipList.MakeSkipList(10)
+	sl.Add("1", []byte("a"))
+	sl.Add("2", []byte("a"))
+	sl.Add("3", []byte("a"))
+	sl.Add("4", []byte("a"))
+	sl.Add("5", []byte("a"))
+	SSTable.MakeSSTable(sl.GetElements(), 1, 0)
 }
