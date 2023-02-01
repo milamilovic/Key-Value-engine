@@ -3,6 +3,7 @@ package SkipList
 import (
 	"fmt"
 	"math/rand"
+	"time"
 )
 
 // func main() {
@@ -44,10 +45,36 @@ type SkipListNode struct {
 	value     []byte
 	next      []*SkipListNode
 	tombstone bool
+	timestamp int64
+}
+
+func (node *SkipListNode) GetKey() string {
+	return node.key
+}
+func (node *SkipListNode) GetValue() []byte {
+	return node.value
+}
+func (node *SkipListNode) GetTombstone() bool {
+	return node.tombstone
+}
+func (node *SkipListNode) GetTimeStamp() int64 {
+	return node.timestamp
+}
+func (list *SkipList) GetElements() []*SkipListNode {
+	niz := make([]*SkipListNode, 0)
+	curr := list.head
+	curr = curr.next[0]
+	niz = append(niz, curr)
+	for i := 1; i < list.size; i++ {
+		curr = curr.next[0]
+		niz = append(niz, curr)
+
+	}
+	return niz
 }
 
 func MakeSkipList(maxHeight int) *SkipList {
-	head := SkipListNode{key: "", value: nil, next: make([]*SkipListNode, maxHeight+1), tombstone: false}
+	head := SkipListNode{key: "", value: nil, next: make([]*SkipListNode, maxHeight+1), tombstone: false, timestamp: 0}
 	maxH := maxHeight
 	h := 1
 	size := 0
@@ -84,7 +111,8 @@ func (skipList *SkipList) Add(key string, value []byte) {
 			pronadjeniCvor.tombstone = false
 			pronadjeniCvor.value = value
 		} else {
-			noviCvor := &SkipListNode{key, value, make([]*SkipListNode, level), false}
+			now := time.Now()
+			noviCvor := &SkipListNode{key, value, make([]*SkipListNode, level), false, now.Unix()}
 			for i := skipList.height; i >= 0; i-- {
 				trenutni := skipList.head
 				sledeci := trenutni.next[i]
@@ -98,9 +126,9 @@ func (skipList *SkipList) Add(key string, value []byte) {
 				if i < level {
 					noviCvor.next[i] = sledeci
 					trenutni.next[i] = noviCvor
-					skipList.size++
 				}
 			}
+			skipList.size++
 		}
 	} else {
 		fmt.Println("Postoji uneti kljuc")

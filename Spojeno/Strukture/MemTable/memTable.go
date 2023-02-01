@@ -1,20 +1,10 @@
 package MemTable
 
 import (
+	"Strukture/SSTable"
 	"Strukture/SkipList"
 	"fmt"
 )
-
-// func main() {
-// 	memTable := createMemTable(20, 15)
-// 	memTable.add("1", []byte("a"))
-// 	memTable.update("1", []byte("b"))
-// 	memTable.deleteElement("1")
-// 	flush := memTable.checkFlush()
-// 	if flush == true {
-// 		memTable.flush()
-// 	}
-// }
 
 type memTable struct {
 	elementi         *SkipList.SkipList
@@ -71,11 +61,14 @@ func (memTable *memTable) CheckFlush() bool {
 	}
 }
 
+var i int = 0
+
 func (memTable *memTable) Flush() {
-	memTable.WriteSSTable()
+	memTable.WriteSSTable(i)
 	memTable = CreateMemTable(15, 20) //pre ovoga treba upisati na disk, SStable
 }
 
-func (memTable *memTable) WriteSSTable() {
-	return
+func (memTable *memTable) WriteSSTable(i int) {
+	i++
+	SSTable.MakeSSTable(memTable.elementi.GetElements(), 1, i)
 }
