@@ -1,4 +1,4 @@
-package main
+package SSTable
 
 import (
 	"Strukture/BloomFilter"
