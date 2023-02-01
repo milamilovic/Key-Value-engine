@@ -198,7 +198,7 @@ func Kompakcija(brojFajlova int, maxLevel int, level int, listLen int) {
 	br := 0
 
 	for br < brojFajlova {
-		skipList := SkipList.MakeSkipList(10)
+		skipList := SkipList.NapraviSkipList(10)
 		br++
 		f1, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL"+strconv.Itoa(level)+
 			"Id"+strconv.Itoa(br)+".db", os.O_RDONLY, 0777)

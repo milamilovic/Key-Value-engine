@@ -14,12 +14,12 @@ type MemTable struct {
 }
 
 func KreirajMemTable(max, velicina int) *MemTable {
-	elementi := SkipList.MakeSkipList(velicina)
+	elementi := SkipList.NapraviSkipList(velicina)
 	return &MemTable{elementi, velicina, max, 0}
 }
 
 func (memTable *MemTable) Add(key string, value []byte) {
-	b, cvor := memTable.elementi.FindElement(key)
+	b, cvor := memTable.elementi.NadjiElement(key)
 	if b == false {
 		if cvor == nil {
 			memTable.elementi.Add(key, value)
@@ -29,7 +29,7 @@ func (memTable *MemTable) Add(key string, value []byte) {
 	}
 }
 func (memTable *MemTable) Update(key string, value []byte) {
-	b, cvor := memTable.elementi.FindElement(key)
+	b, cvor := memTable.elementi.NadjiElement(key)
 	if b == true { //nasao je elemnt i menja mu value
 		memTable.elementi.Add(key, value)
 		fmt.Println("Izmenili smo element u skip listi")
@@ -42,7 +42,7 @@ func (memTable *MemTable) Update(key string, value []byte) {
 func (memTable *MemTable) BrisiElement(key string) {
 	b, cvor := memTable.elementi.NadjiElement(key)
 	if b == true { //nasao je elemnt i menja mu value
-		memTable.elementi.LogDelete(key)
+		memTable.elementi.LogBrisanje(key)
 		fmt.Println("Izbrisali smo element u skip listi")
 	} else {
 		if cvor != nil { //cvor je logicki obrisan

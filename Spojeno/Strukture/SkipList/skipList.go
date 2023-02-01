@@ -136,7 +136,7 @@ func (skipList *SkipList) Add(key string, value []byte) {
 
 }
 
-func (skipList *SkipList) LogBrisaanje(key string) {
+func (skipList *SkipList) LogBrisanje(key string) {
 	b, elem := skipList.NadjiElement(key)
 	if b == true {
 		elem.tombstone = true
