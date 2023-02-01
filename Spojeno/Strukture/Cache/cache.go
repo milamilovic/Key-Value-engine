@@ -91,7 +91,7 @@ func KreirajCache(size int) *Cache {
 	return &Cache{dll, make(map[string][]byte), 0, size}
 }
 
-func (cache *Cache) InsertInCache(key string, value []byte) {
+func (cache *Cache) DodajUCache(key string, value []byte) {
 	_, ok := cache.NadjiUCache(key)
 	if ok {
 		node := cache.list.NadjiUListi(key) //ako postoji vec u cache trazimo ga cvor u listi i brisemo
