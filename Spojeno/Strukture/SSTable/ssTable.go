@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-func MakeSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
+func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 	datFile, errData := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if errData != nil {
@@ -106,7 +106,7 @@ func MakeSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 	sumFile.Close()
 }
 
-func nadjiSummary(kljuc string, f *os.File) (uint64, bool) {
+func NadjiSummary(kljuc string, f *os.File) (uint64, bool) {
 	size := make([]byte, 8)
 	f.Read(size)
 	keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
@@ -144,7 +144,7 @@ func nadjiSummary(kljuc string, f *os.File) (uint64, bool) {
 	return 0, false
 
 }
-func nadjiIndex(offset uint64, f *os.File, kljuc string) (bool, uint64) {
+func NadjiIndex(offset uint64, f *os.File, kljuc string) (bool, uint64) {
 
 	f.Seek(int64(offset), 0)
 	size := make([]byte, 8)
@@ -170,7 +170,7 @@ func nadjiIndex(offset uint64, f *os.File, kljuc string) (bool, uint64) {
 	return false, 0
 }
 
-func nadjiElement(offset uint64, f *os.File, kljuc string) (bool, []byte) {
+func NadjiElement(offset uint64, f *os.File, kljuc string) (bool, []byte) {
 	f.Seek(int64(offset), 0)
 	bytes := make([]byte, 8)
 	f.Read(bytes)
@@ -194,7 +194,7 @@ func nadjiElement(offset uint64, f *os.File, kljuc string) (bool, []byte) {
 	return true, value
 }
 
-func Compaction(brojFajlova int, maxLevel int, level int, listLen int) {
+func Kompakcija(brojFajlova int, maxLevel int, level int, listLen int) {
 	br := 0
 
 	for br < brojFajlova {
@@ -212,8 +212,8 @@ func Compaction(brojFajlova int, maxLevel int, level int, listLen int) {
 			panic(err)
 		}
 		for {
-			_, time1, tomb1, key_s1, val_s1, key1, val1, end1 := getData(f1)
-			_, time2, tomb2, key_s2, val_s2, key2, val2, end2 := getData(f2)
+			_, time1, tomb1, key_s1, val_s1, key1, val1, end1 := GetData(f1)
+			_, time2, tomb2, key_s2, val_s2, key2, val2, end2 := GetData(f2)
 			if end1 == false {
 				f1.Seek(-(4 + 8 + 1 + 8 + 8 + int64(key_s1) + int64(val_s1)), 1)
 				break
@@ -252,7 +252,7 @@ func Compaction(brojFajlova int, maxLevel int, level int, listLen int) {
 			}
 		}
 		for {
-			_, _, _, key_s1, val_s1, key1, val1, end1 := getData(f1)
+			_, _, _, key_s1, val_s1, key1, val1, end1 := GetData(f1)
 			if end1 == true {
 				break
 			}
@@ -261,30 +261,30 @@ func Compaction(brojFajlova int, maxLevel int, level int, listLen int) {
 		}
 
 		for {
-			_, _, _, key_s2, val_s2, key2, val2, end2 := getData(f2)
+			_, _, _, key_s2, val_s2, key2, val2, end2 := GetData(f2)
 			if end2 == true {
 				break
 			}
 			skipList.Add(key2, val2)
 			f1.Seek(int64(4+8+1+8+8+key_s2+val_s2), 1)
 		}
-		index := newFileName(level + 1)
+		index := NovoImeFajla(level + 1)
 		f1.Close()
 		f2.Close()
 		newData := skipList.GetElements()
-		MakeSSTable(newData, level+1, index)
-		deleteFiles(level, br)
-		writeTOC(level+1, index)
+		NapraviSSTable(newData, level+1, index)
+		ObrisiFajlove(level, br)
+		NapraviTOC(level+1, index)
 	}
-	index := newFileName(level + 1)
+	index := NovoImeFajla(level + 1)
 	if index == brojFajlova {
 		if (level + 1) < maxLevel {
-			Compaction(brojFajlova, maxLevel, level+1, 2*listLen)
+			Kompakcija(brojFajlova, maxLevel, level+1, 2*listLen)
 		}
 	}
 }
 
-func writeTOC(level int, index int) {
+func NapraviTOC(level int, index int) {
 	tocFile, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/TOCFiles/TocFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index-1)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
@@ -318,7 +318,7 @@ func writeTOC(level int, index int) {
 
 }
 
-func deleteFiles(level int, index int) {
+func ObrisiFajlove(level int, index int) {
 	err1 := os.Remove("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index) + ".db")
 	if err1 != nil {
@@ -372,7 +372,7 @@ func deleteFiles(level int, index int) {
 
 }
 
-func newFileName(level int) int {
+func NovoImeFajla(level int) int {
 	br := 1
 	for {
 		_, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL"+strconv.Itoa(level)+
@@ -385,7 +385,7 @@ func newFileName(level int) int {
 
 }
 
-func getData(f *os.File) (uint32, uint64, []byte, uint64, uint64, string, []byte, bool) {
+func GetData(f *os.File) (uint32, uint64, []byte, uint64, uint64, string, []byte, bool) {
 
 	size := make([]byte, 4)
 	_, err := f.Read(size)
@@ -413,47 +413,48 @@ func getData(f *os.File) (uint32, uint64, []byte, uint64, uint64, string, []byte
 	return crc, time, tomb, keySize, valueSize, key_s, val, false
 
 }
-func main() {
-	sl := SkipList.MakeSkipList(5)
-	sl.Add("1", []byte("a"))
-	sl.Add("2", []byte("a"))
-	sl.Add("3", []byte("a"))
-	sl.Add("4", []byte("a"))
-	sl.Add("5", []byte("a"))
-	MakeSSTable(sl.GetElements(), 1, 1)
 
-	sl = SkipList.MakeSkipList(5)
-	sl.Add("3", []byte("a"))
-	sl.Add("7", []byte("a"))
-	sl.Add("8", []byte("a"))
-	sl.Add("9", []byte("a"))
-	sl.Add("5", []byte("a"))
-	MakeSSTable(sl.GetElements(), 1, 2)
-	Compaction(2, 2, 1, 5)
-	// file, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/SummaryFileL1Id1.db", os.O_RDONLY, 0777)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// offset, b := nadjiSummary("2", file)
-	// file.Close()
-	// if b {
-	// 	file, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/IndexFileL1Id1.db", os.O_RDONLY, 0777)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	b, offset = nadjiIndex(offset, file, "2")
-	// 	file.Close()
-	// 	if b {
-	// 		file, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL1Id1.db", os.O_RDONLY, 0777)
-	// 		if err != nil {
-	// 			panic(err)
-	// 		}
-	// 		bb, _ := nadjiElement(offset, file, "2")
-	// 		file.Close()
-	// 		if bb {
-	// 			print("Nasli smo ga")
-	// 		}
-	// 	}
-	// }
+// func main() {
+// 	sl := SkipList.MakeSkipList(5)
+// 	sl.Add("1", []byte("a"))
+// 	sl.Add("2", []byte("a"))
+// 	sl.Add("3", []byte("a"))
+// 	sl.Add("4", []byte("a"))
+// 	sl.Add("5", []byte("a"))
+// 	MakeSSTable(sl.GetElements(), 1, 1)
 
-}
+// 	sl = SkipList.MakeSkipList(5)
+// 	sl.Add("3", []byte("a"))
+// 	sl.Add("7", []byte("a"))
+// 	sl.Add("8", []byte("a"))
+// 	sl.Add("9", []byte("a"))
+// 	sl.Add("5", []byte("a"))
+// 	MakeSSTable(sl.GetElements(), 1, 2)
+// 	Compaction(2, 2, 1, 5)
+// file, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/SummaryFileL1Id1.db", os.O_RDONLY, 0777)
+// if err != nil {
+// 	panic(err)
+// }
+// offset, b := nadjiSummary("2", file)
+// file.Close()
+// if b {
+// 	file, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/IndexFileL1Id1.db", os.O_RDONLY, 0777)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	b, offset = nadjiIndex(offset, file, "2")
+// 	file.Close()
+// 	if b {
+// 		file, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL1Id1.db", os.O_RDONLY, 0777)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		bb, _ := nadjiElement(offset, file, "2")
+// 		file.Close()
+// 		if bb {
+// 			print("Nasli smo ga")
+// 		}
+// 	}
+// }
+
+// }

@@ -73,7 +73,7 @@ func (list *SkipList) GetElements() []*SkipListNode {
 	return niz
 }
 
-func MakeSkipList(maxHeight int) *SkipList {
+func NapraviSkipList(maxHeight int) *SkipList {
 	head := SkipListNode{key: "", value: nil, next: make([]*SkipListNode, maxHeight+1), tombstone: false, timestamp: 0}
 	maxH := maxHeight
 	h := 1
@@ -81,7 +81,7 @@ func MakeSkipList(maxHeight int) *SkipList {
 	return &SkipList{maxH, h, size, &head}
 }
 
-func (skipList *SkipList) FindElement(key string) (bool, *SkipListNode) {
+func (skipList *SkipList) NadjiElement(key string) (bool, *SkipListNode) {
 	trenutni := skipList.head
 	for i := skipList.height; i >= 0; i-- {
 		sledeci := trenutni.next[i]
@@ -105,7 +105,7 @@ func (skipList *SkipList) FindElement(key string) (bool, *SkipListNode) {
 
 func (skipList *SkipList) Add(key string, value []byte) {
 	level := skipList.Roll()
-	b, pronadjeniCvor := skipList.FindElement(key)
+	b, pronadjeniCvor := skipList.NadjiElement(key)
 	if b == false { //ili ne postoji ili je log obrisan pri cemu ga onda azuriramo
 		if pronadjeniCvor != nil {
 			pronadjeniCvor.tombstone = false
@@ -136,8 +136,8 @@ func (skipList *SkipList) Add(key string, value []byte) {
 
 }
 
-func (skipList *SkipList) LogDelete(key string) {
-	b, elem := skipList.FindElement(key)
+func (skipList *SkipList) LogBrisaanje(key string) {
+	b, elem := skipList.NadjiElement(key)
 	if b == true {
 		elem.tombstone = true
 	} else {

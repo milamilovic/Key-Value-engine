@@ -24,15 +24,15 @@ type Cache struct {
 	maxSize     int
 }
 
-func MakeList(size int) *DoubleLinkedList {
+func NapraviListu(size int) *DoubleLinkedList {
 	return &DoubleLinkedList{head: nil, tail: nil, dllSize: size}
 }
-func GenerateNode(key string, value []byte) *CacheNode {
+func NapraviCvor(key string, value []byte) *CacheNode {
 	node := CacheNode{key, value, nil, nil}
 	return &node
 }
-func (dll *DoubleLinkedList) InsertNode(key string, value []byte) bool {
-	newNode := GenerateNode(key, value)
+func (dll *DoubleLinkedList) DodajCvor(key string, value []byte) bool {
+	newNode := NapraviCvor(key, value)
 	if dll.head != nil {
 		newNode.next = dll.head
 		dll.head.prev = newNode
@@ -48,7 +48,7 @@ func (dll *DoubleLinkedList) InsertNode(key string, value []byte) bool {
 	return true
 }
 
-func (dll *DoubleLinkedList) FindInList(key string) *CacheNode {
+func (dll *DoubleLinkedList) NadjiUListi(key string) *CacheNode {
 	current := dll.head
 	for current != nil {
 		if current.key == key {
@@ -58,14 +58,14 @@ func (dll *DoubleLinkedList) FindInList(key string) *CacheNode {
 	}
 	return nil
 }
-func (dll *DoubleLinkedList) deleteLastNode() string {
+func (dll *DoubleLinkedList) ObrisiPoslednjiCvor() string {
 	key := dll.tail.key
 	dll.tail = dll.tail.prev
 	dll.tail.next = nil
 	return key
 }
 
-func (dll *DoubleLinkedList) DeleteNode(node *CacheNode) {
+func (dll *DoubleLinkedList) ObrisiCvor(node *CacheNode) {
 	if node.next != nil {
 		node.next.prev = node.prev
 	} else {
@@ -78,7 +78,7 @@ func (dll *DoubleLinkedList) DeleteNode(node *CacheNode) {
 	}
 
 }
-func (dll *DoubleLinkedList) printList() {
+func (dll *DoubleLinkedList) PrintList() {
 	current := dll.head
 	for current != nil {
 		fmt.Print(current.key, " ")
@@ -86,28 +86,28 @@ func (dll *DoubleLinkedList) printList() {
 	}
 }
 
-func CreateCache(size int) *Cache {
-	dll := MakeList(size)
+func KreirajCache(size int) *Cache {
+	dll := NapraviListu(size)
 	return &Cache{dll, make(map[string][]byte), 0, size}
 }
 
 func (cache *Cache) InsertInCache(key string, value []byte) {
-	_, ok := cache.FindInCache(key)
+	_, ok := cache.NadjiUCache(key)
 	if ok {
-		node := cache.list.FindInList(key) //ako postoji vec u cache trazimo ga cvor u listi i brisemo
-		cache.list.DeleteNode(node)
+		node := cache.list.NadjiUListi(key) //ako postoji vec u cache trazimo ga cvor u listi i brisemo
+		cache.list.ObrisiCvor(node)
 		delete(cache.hashes, key) //brisemo staru vrednost iz hashes
-		b := cache.list.InsertNode(key, value)
+		b := cache.list.DodajCvor(key, value)
 		if b {
 			fmt.Println("Uspresno dodavanje")
 			cache.hashes[key] = value
 		}
 	} else {
 		if len(cache.hashes) >= cache.maxSize {
-			del := cache.list.deleteLastNode() //brise se poslednji i njegova vrednost u hashes tabeli
+			del := cache.list.ObrisiPoslednjiCvor() //brise se poslednji i njegova vrednost u hashes tabeli
 			delete(cache.hashes, del)
 		}
-		b := cache.list.InsertNode(key, value)
+		b := cache.list.DodajCvor(key, value)
 		if b {
 			fmt.Println("Uspresno dodavanje elementa")
 			cache.hashes[key] = value
@@ -115,7 +115,7 @@ func (cache *Cache) InsertInCache(key string, value []byte) {
 		}
 	}
 }
-func (cache *Cache) FindInCache(key string) ([]byte, bool) {
+func (cache *Cache) NadjiUCache(key string) ([]byte, bool) {
 	val, ok := cache.hashes[key]
 	if ok {
 		return val, true
@@ -126,9 +126,9 @@ func (cache *Cache) FindInCache(key string) ([]byte, bool) {
 func (cache *Cache) GetFromCache(key string) *CacheNode {
 	_, ok := cache.hashes[key]
 	if ok {
-		node := cache.list.FindInList(key)
-		cache.list.DeleteNode(node)
-		b := cache.list.InsertNode(node.key, node.value) //pristupili smo mu pa ga brisemo, i ubacujemo na pocetak
+		node := cache.list.NadjiUListi(key)
+		cache.list.ObrisiCvor(node)
+		b := cache.list.DodajCvor(node.key, node.value) //pristupili smo mu pa ga brisemo, i ubacujemo na pocetak
 		if b {
 			fmt.Println("Uspesan pristup elementu")
 			return node
@@ -140,11 +140,11 @@ func (cache *Cache) GetFromCache(key string) *CacheNode {
 		return nil
 	}
 }
-func (cache *Cache) DeleteFromCache(key string) bool {
+func (cache *Cache) ObrisiIzCache(key string) bool {
 	_, ok := cache.hashes[key]
 	if ok {
-		node := cache.list.FindInList(key)
-		cache.list.DeleteNode(node) //prvo izbrisemo cvor
+		node := cache.list.NadjiUListi(key)
+		cache.list.ObrisiCvor(node) //prvo izbrisemo cvor
 		delete(cache.hashes, key)   // zatim izbrisemo iz hashes
 		return true
 	} else {
@@ -153,5 +153,5 @@ func (cache *Cache) DeleteFromCache(key string) bool {
 	}
 }
 func (cache *Cache) Print() {
-	cache.list.printList()
+	cache.list.PrintList()
 }

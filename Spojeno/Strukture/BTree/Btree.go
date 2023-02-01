@@ -69,7 +69,7 @@ func makeBtree(maxHeight int) *Btree {
 	return &Btree{&root, maxHeight + 1, k}
 }
 
-func (btree *Btree) findElement(key string) (bool, *Node) {
+func (btree *Btree) FindElement(key string) (bool, *Node) {
 	//fmt.Println("trazimo elem sa kljucem ", key)
 	trenutniCvor := *btree.root
 	if trenutniCvor.max_children == 0 {
@@ -154,8 +154,8 @@ func (btree *Btree) findElement(key string) (bool, *Node) {
 	return false, nil //nismo upste nasli
 }
 
-func (btree *Btree) add(key string, value []byte) {
-	b, _ := btree.findElement(key)
+func (btree *Btree) Add(key string, value []byte) {
+	b, _ := btree.FindElement(key)
 	trenutniCvor := *btree.root
 	pokaz_na_trenutni_cvor := btree.root
 	//roditelj := trenutniCvor

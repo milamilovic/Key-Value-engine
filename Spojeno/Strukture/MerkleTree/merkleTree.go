@@ -62,7 +62,7 @@ func Pretvori_u_bajtove(stringovi []string) [][]byte {
 	return data
 }
 
-func kreiraj_listove(data [][]byte) []*Node {
+func Kreiraj_listove(data [][]byte) []*Node {
 	listovi := []*Node{}
 
 	for i := 0; i < len(data); i++ {
@@ -78,15 +78,15 @@ func Kreiraj_MerkleTree(keys [][]byte, putanja string) *Root {
 
 	data := keys
 
-	listovi := kreiraj_listove(data)
-	root_node := kreiraj_cvorove(listovi)
+	listovi := Kreiraj_listove(data)
+	root_node := Kreiraj_cvorove(listovi)
 
 	root := Root{root_node}
 	Upisi_u_fajl(root_node, putanja)
 	return &root
 }
 
-func kreiraj_cvorove(svi_listovi []*Node) *Node {
+func Kreiraj_cvorove(svi_listovi []*Node) *Node {
 	nivo := []*Node{}
 	cvorovi := svi_listovi
 	if len(cvorovi) == 1 {
@@ -119,7 +119,7 @@ func kreiraj_cvorove(svi_listovi []*Node) *Node {
 			return cvorovi[0]
 		}
 	}
-	return kreiraj_cvorove(nivo)
+	return Kreiraj_cvorove(nivo)
 }
 
 func PrintTree(root *Node) {

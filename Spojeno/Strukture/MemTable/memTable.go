@@ -6,19 +6,19 @@ import (
 	"fmt"
 )
 
-type memTable struct {
+type MemTable struct {
 	elementi         *SkipList.SkipList
 	velicina         int //velicina skipListe
 	maxVelicina      int //maksimalna velicina za memTable
 	trenutnaVelicina int
 }
 
-func CreateMemTable(max, velicina int) *memTable {
+func KreirajMemTable(max, velicina int) *MemTable {
 	elementi := SkipList.MakeSkipList(velicina)
-	return &memTable{elementi, velicina, max, 0}
+	return &MemTable{elementi, velicina, max, 0}
 }
 
-func (memTable *memTable) Add(key string, value []byte) {
+func (memTable *MemTable) Add(key string, value []byte) {
 	b, cvor := memTable.elementi.FindElement(key)
 	if b == false {
 		if cvor == nil {
@@ -28,7 +28,7 @@ func (memTable *memTable) Add(key string, value []byte) {
 		}
 	}
 }
-func (memTable *memTable) Update(key string, value []byte) {
+func (memTable *MemTable) Update(key string, value []byte) {
 	b, cvor := memTable.elementi.FindElement(key)
 	if b == true { //nasao je elemnt i menja mu value
 		memTable.elementi.Add(key, value)
@@ -39,8 +39,8 @@ func (memTable *memTable) Update(key string, value []byte) {
 		}
 	}
 }
-func (memTable *memTable) DeleteElement(key string) {
-	b, cvor := memTable.elementi.FindElement(key)
+func (memTable *MemTable) BrisiElement(key string) {
+	b, cvor := memTable.elementi.NadjiElement(key)
 	if b == true { //nasao je elemnt i menja mu value
 		memTable.elementi.LogDelete(key)
 		fmt.Println("Izbrisali smo element u skip listi")
@@ -53,7 +53,7 @@ func (memTable *memTable) DeleteElement(key string) {
 	}
 }
 
-func (memTable *memTable) CheckFlush() bool {
+func (memTable *MemTable) ProveriFlush() bool {
 	if memTable.maxVelicina <= memTable.trenutnaVelicina {
 		return true //treba flush odraditi
 	} else {
@@ -63,12 +63,12 @@ func (memTable *memTable) CheckFlush() bool {
 
 var i int = 0
 
-func (memTable *memTable) Flush() {
-	memTable.WriteSSTable(i)
-	memTable = CreateMemTable(15, 20) //pre ovoga treba upisati na disk, SStable
+func (memTable *MemTable) Flush() {
+	memTable.NapraviSSTable(i)
+	memTable = KreirajMemTable(15, 20) //pre ovoga treba upisati na disk, SStable
 }
 
-func (memTable *memTable) WriteSSTable(i int) {
+func (memTable *MemTable) NapraviSSTable(i int) {
 	i++
-	SSTable.MakeSSTable(memTable.elementi.GetElements(), 1, i)
+	SSTable.NapraviSSTable(memTable.elementi.GetElements(), 1, i)
 }
