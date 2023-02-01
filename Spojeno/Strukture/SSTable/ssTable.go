@@ -1,4 +1,4 @@
-package SSTable
+package main
 
 import (
 	"Strukture/BloomFilter"
@@ -8,21 +8,26 @@ import (
 	"hash/crc32"
 	"io"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 func MakeSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
-	datFile, errData := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL"+strconv.Itoa(level)+
+	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	//fmt.Println(path)
+	datFile, errData := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if errData != nil {
 		panic(errData)
 	}
-	indFile, errInd := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/IndexFileL"+strconv.Itoa(level)+
+	indFile, errInd := os.OpenFile(path+"/SSTableData/IndexFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if errInd != nil {
 		panic(errInd)
 	}
-	sumFile, errSum := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/SummaryFileL"+strconv.Itoa(level)+
+	sumFile, errSum := os.OpenFile(path+"/SSTableData/SummaryFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if errSum != nil {
 		panic(errInd)
@@ -182,18 +187,19 @@ func nadjiElement(offset uint64, f *os.File, kljuc string) (bool, []byte) {
 
 func Compaction(brojFajlova int, maxLevel int, level int, listLen int) {
 	br := 0
-
+	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
 	for br < brojFajlova {
 		bloomFilter := BloomFilter.New_bloom(brojFajlova, 2)
 		skipList := SkipList.MakeSkipList(10)
 		br++
-		f1, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL"+strconv.Itoa(level)+
+		f1, err := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
 			"Id"+strconv.Itoa(br)+".db", os.O_RDONLY, 0777)
 		if err != nil {
 			panic(err)
 		}
 		br++
-		f2, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL"+strconv.Itoa(level)+
+		f2, err := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
 			"Id"+strconv.Itoa(br)+".db", os.O_RDONLY, 0777)
 		if err != nil {
 			panic(err)
@@ -259,7 +265,7 @@ func Compaction(brojFajlova int, maxLevel int, level int, listLen int) {
 			f1.Seek(int64(4+8+1+8+8+key_s2+val_s2), 1)
 		}
 		index := newFileName(level+1) + 1
-		filterFile, errFil := os.Create("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/FilterFileL" + strconv.Itoa(level) +
+		filterFile, errFil := os.Create(path + "/SSTableData/FilterFileL" + strconv.Itoa(level) +
 			"Id" + strconv.Itoa(index-1) + ".db")
 		if errFil != nil {
 			panic(errFil)
@@ -282,7 +288,7 @@ func Compaction(brojFajlova int, maxLevel int, level int, listLen int) {
 			stringovi = append(stringovi, newData[i].GetKey())
 		}
 		podaciZaMerkle := MerkleTree.Pretvori_u_bajtove(stringovi)
-		MerkleTree.Kreiraj_MerkleTree(podaciZaMerkle, "C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/MerkleL"+strconv.Itoa(level)+"Id"+strconv.Itoa(index)+".txt")
+		MerkleTree.Kreiraj_MerkleTree(podaciZaMerkle, path+"/SSTableData/MerkleL"+strconv.Itoa(level)+"Id"+strconv.Itoa(index)+".txt")
 
 		writeTOC(level+1, index)
 	}
@@ -295,27 +301,29 @@ func Compaction(brojFajlova int, maxLevel int, level int, listLen int) {
 }
 
 func writeTOC(level int, index int) {
-	tocFile, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/TOCFiles/TocFileL"+strconv.Itoa(level)+
+	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	tocFile, err := os.OpenFile(path+"/TOCFiles/TocFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
 		panic(err)
 	}
-	_, er := tocFile.Write([]byte("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL" + strconv.Itoa(level) +
+	_, er := tocFile.Write([]byte(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index) + ".db"))
 	if er != nil {
 		panic(er)
 	}
-	_, er = tocFile.Write([]byte("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/IndexFileL" + strconv.Itoa(level) +
+	_, er = tocFile.Write([]byte(path + "/SSTableData/IndexFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index) + ".db"))
 	if er != nil {
 		panic(er)
 	}
-	_, er = tocFile.Write([]byte("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/SummaryFileL" + strconv.Itoa(level) +
+	_, er = tocFile.Write([]byte(path + "/SSTableData/SummaryFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index) + ".db"))
 	if er != nil {
 		panic(er)
 	}
-	_, er = tocFile.Write([]byte("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/FilterFileL" + strconv.Itoa(level) +
+	_, er = tocFile.Write([]byte(path + "/SSTableData/FilterFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index) + ".db"))
 	if er != nil {
 		panic(er)
@@ -324,32 +332,34 @@ func writeTOC(level int, index int) {
 }
 
 func deleteFiles(level int, index int) {
-	err1 := os.Remove("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL" + strconv.Itoa(level) +
+	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	err1 := os.Remove(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index) + ".db")
 	if err1 != nil {
 		panic(err1)
 	}
-	err2 := os.Remove("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL" + strconv.Itoa(level) +
+	err2 := os.Remove(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index-1) + ".db")
 	if err2 != nil {
 		panic(err2)
 	}
-	err3 := os.Remove("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/IndexFileL" + strconv.Itoa(level) +
+	err3 := os.Remove(path + "/SSTableData/IndexFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index) + ".db")
 	if err3 != nil {
 		panic(err3)
 	}
-	err4 := os.Remove("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/IndexFileL" + strconv.Itoa(level) +
+	err4 := os.Remove(path + "/SSTableData/IndexFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index-1) + ".db")
 	if err4 != nil {
 		panic(err4)
 	}
-	err5 := os.Remove("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/SummaryFileL" + strconv.Itoa(level) +
+	err5 := os.Remove(path + "/SSTableData/SummaryFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index) + ".db")
 	if err5 != nil {
 		panic(err5)
 	}
-	err6 := os.Remove("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/SummaryFileL" + strconv.Itoa(level) +
+	err6 := os.Remove(path + "/SSTableData/SummaryFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index-1) + ".db")
 	if err6 != nil {
 		panic(err6)
@@ -368,9 +378,11 @@ func deleteFiles(level int, index int) {
 }
 
 func newFileName(level int) int {
+	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
 	br := 1
 	for {
-		_, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL"+strconv.Itoa(level)+
+		_, err := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
 			"Id"+strconv.Itoa(br)+".db", os.O_RDONLY, 0777)
 		if err != nil { //nema takvog fajla, moze da bude novi
 			return br
