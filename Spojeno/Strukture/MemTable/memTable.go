@@ -65,7 +65,7 @@ var i int = 0
 
 func (memTable *MemTable) Flush() {
 	memTable.NapraviSSTable(i)
-	memTable = KreirajMemTable(15, 20) //pre ovoga treba upisati na disk, SStable
+	memTable = KreirajMemTable(10, 10) //pre ovoga treba upisati na disk, SStable
 }
 
 func (memTable *MemTable) NapraviSSTable(i int) {
