@@ -12,10 +12,10 @@ import (
 )
 
 type Engine struct {
-	bloom         BloomFilter.BloomFilter
-	memtable      MemTable.MemTable
-	cache         Cache.Cache
-	wal           Wal.Wal
+	bloom         *BloomFilter.BloomFilter
+	memtable      *MemTable.MemTable
+	cache         *Cache.Cache
+	wal           *Wal.Wal
 	konfiguracije map[string]int
 }
 
@@ -41,7 +41,7 @@ func initialize() *Engine {
 		fmt.Println(string(file))
 	}
 	engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], 0.1)
-	engine.memtable = *MemTable.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
+	engine.memtable = MemTable.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
 	engine.wal = Wal.NapraviWal("Spojeno\\Data\\Wal", engine.konfiguracije["wal_low_water_mark"])
 	return &engine
 }
