@@ -17,7 +17,7 @@ import (
 // }
 
 func SimHash(ime_fajla string) string {
-	file, _ := os.OpenFile(ime_fajla, os.O_CREATE, 0666)
+	file, _ := os.OpenFile(ime_fajla, os.O_RDONLY, 0666)
 	var reci []string
 	Scanner := bufio.NewScanner(file)
 	Scanner.Split(bufio.ScanWords)

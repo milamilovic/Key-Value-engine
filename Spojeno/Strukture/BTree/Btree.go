@@ -51,6 +51,7 @@ type Btree struct {
 	root      *BtreeNode
 	maxHeight int
 	height    int
+	size int
 }
 
 type BtreeNode struct {
@@ -72,7 +73,7 @@ func makeBtree(maxHeight int) *Btree {
 	j := 0
 	k := 1
 	root := BtreeNode{make([]*Node, 4), make([]*BtreeNode, 4), i, j, nil}
-	return &Btree{&root, maxHeight + 1, k}
+	return &Btree{&root, maxHeight + 1, k, 0}
 }
 
 func (btree Btree) LogDel(key string) {
@@ -185,6 +186,7 @@ func (btree *Btree) Add(key string, value []byte) {
 	// fmt.Println("dodajemo element, trenutno stanje korena")
 	// fmt.Println(trenutniCvor)
 	if b == false { //ovo znaci da ne postoji jer ga nije pronasao
+		btree.size++
 		//fmt.Println("pronadjen element")
 		pronadjen := false
 		//fmt.Println(trenutniCvor.children)

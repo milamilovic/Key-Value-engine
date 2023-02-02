@@ -7,6 +7,7 @@ import (
 	"Strukture/HyperLogLog"
 	"Strukture/MemTable"
 	"Strukture/Wal"
+	"Strukture/SimHash"
 	"bufio"
 	"fmt"
 	"os"
@@ -76,6 +77,15 @@ func main() {
 	fmt.Println(engine)
 	makeCms()
 	makeHll()
+	makeSimHash()
+}
+
+func makeSimHash() {
+	sim1:=SimHash.SimHash("Strukture\\SimHash\\simHash.txt")
+	fmt.Println(sim1)
+	sim2:=SimHash.SimHash("Strukture\\SimHash\\simHash2.txt")
+	fmt.Println(sim2)
+	fmt.Println(SimHash.Hamming(sim1, sim2))
 }
 
 func makeCms() {
