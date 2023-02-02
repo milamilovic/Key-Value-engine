@@ -5,6 +5,7 @@ import (
 	"Strukture/Cache"
 	"Strukture/CountMinSketch"
 	"Strukture/HyperLogLog"
+	"Strukture/MemTableBTree"
 	"Strukture/MemTableSkipList"
 	"Strukture/SimHash"
 	"Strukture/Wal"
@@ -17,12 +18,14 @@ import (
 
 type Engine struct {
 	bloom         *BloomFilter.BloomFilter
-	memtable      *MemTableSkipList.MemTable
 	cache         *Cache.Cache
 	wal           *Wal.Wal
 	konfiguracije map[string]int
 	cms           *CountMinSketch.CountMinSketch
 	hll           *HyperLogLog.HLL
+	mems          *MemTableSkipList.MemTable
+	memb          *MemTableBTree.MemTable
+	da_li_je_skip bool
 }
 
 func default_konfig(engine *Engine) {
@@ -35,6 +38,7 @@ func default_konfig(engine *Engine) {
 	engine.konfiguracije["token_key"] = 99999999
 	engine.konfiguracije["token_maxtok"] = 5
 	engine.konfiguracije["token_interval"] = 60
+	engine.konfiguracije["memtable_da_li_je_skip"] = 1
 }
 
 func SplitLines(s string) []string {
@@ -49,12 +53,11 @@ func initialize(odabran string) *Engine {
 	engine := Engine{}
 	engine.konfiguracije = make(map[string]int)
 	file, err := os.ReadFile("Data/Konfiguracije/konfiguracije.txt")
+	broj := -5
 	if err != nil {
 		default_konfig(&engine)
 	} else {
-		fmt.Println(string(file))
 		delovi := SplitLines(string(file))
-		fmt.Println(delovi)
 		engine.konfiguracije["memtable_max_velicina"], _ = strconv.Atoi(delovi[0])
 		engine.konfiguracije["cache_size"], _ = strconv.Atoi(delovi[1])
 		engine.konfiguracije["sst_level"], _ = strconv.Atoi(delovi[2])
@@ -64,9 +67,19 @@ func initialize(odabran string) *Engine {
 		engine.konfiguracije["token_key"], _ = strconv.Atoi(delovi[6])
 		engine.konfiguracije["token_maxtok"], _ = strconv.Atoi(delovi[7])
 		engine.konfiguracije["token_interval"], _ = strconv.Atoi(delovi[8])
+		broj, _ = strconv.Atoi(delovi[9])
+	}
+	if broj == 1 {
+		engine.mems = MemTableSkipList.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
+		engine.memb = nil
+		engine.da_li_je_skip = true
+	} else {
+
+		engine.memb = MemTableBTree.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
+		engine.mems = nil
+		engine.da_li_je_skip = false
 	}
 	engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1))
-	engine.memtable = MemTableSkipList.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
 	engine.cache = Cache.KreirajCache(engine.konfiguracije["cache_size"])
 	engine.wal = Wal.NapraviWal("Data\\Wal", engine.konfiguracije["wal_low_water_mark"])
 	return &engine
@@ -75,9 +88,6 @@ func initialize(odabran string) *Engine {
 func main() {
 	odabran := odabirMemTable()
 	engine := initialize(odabran)
-	fmt.Println()
-	fmt.Println()
-	fmt.Println(engine)
 	menu()
 	makeCms(engine)
 	addCms("4", []byte("caoooo"), engine)
@@ -175,7 +185,7 @@ func addHll(key string, engine *Engine) {
 }
 
 func saveHll(engine *Engine) {
-	podaci:=HyperLogLog.Serijalizacija(engine.hll)
+	podaci := HyperLogLog.Serijalizacija(engine.hll)
 	os.WriteFile("Spojeno\\Strukture\\HyperLogLog\\hll.bin", podaci, os.FileMode(os.O_RDWR))
 }
 
