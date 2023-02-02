@@ -6,8 +6,8 @@ import (
 	"Strukture/CountMinSketch"
 	"Strukture/HyperLogLog"
 	"Strukture/MemTable"
-	"Strukture/Wal"
 	"Strukture/SimHash"
+	"Strukture/Wal"
 	"bufio"
 	"fmt"
 	"os"
@@ -75,16 +75,61 @@ func main() {
 	fmt.Println()
 	fmt.Println()
 	fmt.Println(engine)
+	menu()
 	makeCms()
 	makeHll()
 	makeSimHash()
 }
+func menu() {
+	b := true
+	for b == true {
+		fmt.Println("****MENI*****")
+		fmt.Println("1:PUT")
+		fmt.Println("2:GET")
+		fmt.Println("3:DELETE")
+		fmt.Println("4:LIST")
+		fmt.Println("5:RANGE SCAN")
+		fmt.Println("x:kraj programa")
+		fmt.Println("Unesite broj ispred zeljene opcije")
+		r := bufio.NewReader(os.Stdin)
+		unos, _ := r.ReadString('\n')
+		unos = strings.Replace(unos, "\n", "", 1)
+		unos = strings.Replace(unos, "\r", "", 1)
+		switch unos {
+		case "1":
+			//put()
+			break
+		case "2":
+			//get()
+			break
+		case "3":
+			//delete()
+			break
+		case "4":
+			//list()
+			break
+		case "5":
+			//rangeScan()
+			break
+		case "x":
+			b = false
+			break
+		default:
+			fmt.Println("Pogresan unos")
+		}
+
+	}
+
+}
 
 func makeSimHash() {
+	fmt.Println("fingerprint prvog teksta: ")
 	sim1:=SimHash.SimHash("Strukture\\SimHash\\simHash.txt")
 	fmt.Println(sim1)
+	fmt.Println("fingerprint drugog teksta: ")
 	sim2:=SimHash.SimHash("Strukture\\SimHash\\simHash2.txt")
 	fmt.Println(sim2)
+	fmt.Println("Hemingova razdaljina ova dva teksta: ")
 	fmt.Println(SimHash.Hamming(sim1, sim2))
 }
 
