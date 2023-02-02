@@ -6,7 +6,7 @@ import (
 	"Strukture/MemTableSkipList"
 )
 
-func obrisi_skiplist(key string, mt *MemTableSkipList.MemTable, c *Cache.Cache) bool {
+func Obrisi_skiplist(key string, mt *MemTableSkipList.MemTable, c *Cache.Cache) bool {
 	// logicko brisanje
 	obrisan := mt.BrisiElement(key)
 	if obrisan {
@@ -16,7 +16,7 @@ func obrisi_skiplist(key string, mt *MemTableSkipList.MemTable, c *Cache.Cache) 
 	return false
 }
 
-func obrisi_bstablo(key string, mt *MemTableBTree.MemTable, c *Cache.Cache) bool {
+func Obrisi_bstablo(key string, mt *MemTableBTree.MemTable, c *Cache.Cache) bool {
 	// logicko brisanje
 	obrisan := mt.BrisiElement(key)
 	if obrisan {
