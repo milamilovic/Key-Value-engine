@@ -37,8 +37,8 @@ func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 
 	}
 	stringovi := []string{}
-	offsetDat := 0
-	offsetInd := 0
+	var offsetDat uint64 = 0
+	var offsetInd uint64 = 0
 
 	first := make([]byte, 8)
 	first_u := uint64(len(lCvor[0].GetKey()))
@@ -82,24 +82,23 @@ func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 		datFile.Write(valSize)
 		datFile.Write([]byte(cvor.GetKey()))
 		datFile.Write(cvor.GetValue())
-		filterFile.Write(keySize)
 		filterFile.Write([]byte(cvor.GetKey()))
 
-		size := 4 + 8 + 1 + 8 + 8 + len(cvor.GetKey()) + len(cvor.GetValue())
+		size := 4 + 8 + 1 + 8 + 8 + key_u + val_u
 		offset_ind := make([]byte, 8)
-		binary.LittleEndian.PutUint64(offset_ind, uint64(offsetDat))
+		binary.LittleEndian.PutUint64(offset_ind, offsetDat)
 		indFile.Write(keySize)
 		indFile.Write([]byte(cvor.GetKey()))
 		indFile.Write(offset_ind)
-		offsetDat = offsetDat + int(size)
+		offsetDat = offsetDat + size
 		ind_offset := 16 + key_u
 
 		offset_sum := make([]byte, 8)
-		binary.LittleEndian.PutUint64(offset_sum, uint64(offsetInd))
+		binary.LittleEndian.PutUint64(offset_sum, offsetInd)
 		sumFile.Write(keySize)
 		sumFile.Write([]byte(cvor.GetKey()))
 		sumFile.Write(offset_sum)
-		offsetInd = offsetInd + int(ind_offset)
+		offsetInd = offsetInd + ind_offset
 	}
 	podaciZaMerkle := MerkleTree.Pretvori_u_bajtove(stringovi)
 	MerkleTree.Kreiraj_MerkleTree(podaciZaMerkle, path+"/SSTableData/MerkleL"+strconv.Itoa(level)+"Id"+strconv.Itoa(index)+".txt")
@@ -126,17 +125,17 @@ func NadjiSummary(kljuc string, f *os.File) (uint64, bool) {
 	if kljuc > key2 || kljuc < key1 {
 		return 0, false
 	}
-
 	for true { //citamo kljuceve redom
-		size = make([]byte, 8)
+		size := make([]byte, 8)
 		f.Read(size)
-		keySize = binary.LittleEndian.Uint64(size)
-		key_read = make([]byte, keySize)
+		keySize := binary.LittleEndian.Uint64(size)
+		key_read := make([]byte, keySize)
 		f.Read(key_read)
 		key := string(key_read)
 		if key > kljuc {
 			return 0, false
 		} else if key < kljuc {
+			f.Seek(8, 1)
 			continue
 		} else { //isti su, nasli smo ga
 			offset := make([]byte, 8) //citamo sledecih 8 bajtova sto je nas trazeni offset
@@ -149,35 +148,46 @@ func NadjiSummary(kljuc string, f *os.File) (uint64, bool) {
 
 }
 func NadjiIndex(offset uint64, f *os.File, kljuc string) (bool, uint64) {
-
 	f.Seek(int64(offset), 0)
 	size := make([]byte, 8)
 	f.Read(size)
-	for true {
-		size := make([]byte, 8)
-		f.Read(size)
-		keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
-		key_read := make([]byte, keySize)
-		f.Read(key_read)
-		key := string(key_read)
-		if key > kljuc {
-			return false, 0
-		} else if key < kljuc {
-			continue
-		} else { //isti su, nasli smo ga
-			offset := make([]byte, 8) //citamo sledecih 8 bajtova sto je nas trazeni offset
-			f.Read(offset)
-			offsetSize := binary.LittleEndian.Uint64(size)
-			return true, offsetSize
-		}
-	}
-	return false, 0
+	keySize := binary.LittleEndian.Uint64(size)
+	f.Seek(int64(keySize), 1)
+	offset_kljuca := make([]byte, 8)
+	f.Read(offset_kljuca)
+	offset = binary.LittleEndian.Uint64(offset_kljuca)
+	return true, offset
+	// for true {
+	// 	size := make([]byte, 8)
+	// 	f.Read(size)
+	// 	keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
+	// 	key_read := make([]byte, keySize)
+	// 	f.Read(key_read)
+	// 	key := string(key_read)
+	// 	fmt.Println(key)
+	// 	if key > kljuc {
+	// 		return false, 0
+	// 	} else if key < kljuc {
+	// 		f.Seek(int64(keySize), 1)
+	// 		continue
+	// 	} else { //isti su, nasli smo ga
+	// 		offset := make([]byte, 8) //citamo sledecih 8 bajtova sto je nas trazeni offset
+	// 		f.Read(offset)
+	// 		offsetSize := binary.LittleEndian.Uint64(size)
+	// 		return true, offsetSize
+	// 	}
+	// }
+	// return false, 0
 }
 
 func NadjiElement(offset uint64, f *os.File, kljuc string) (bool, []byte) {
 	f.Seek(int64(offset), 0)
+
 	bytes := make([]byte, 8)
 	f.Read(bytes)
+	bytes = make([]byte, 4)
+	f.Read(bytes)
+
 	t := make([]byte, 1)
 	f.Read(t)
 	if t[0] == 1 {

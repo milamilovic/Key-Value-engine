@@ -24,7 +24,7 @@ func Citaj(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.Cache
 			value, _ = cache.NadjiUCache(kljuc)
 			return b, value
 		} else {
-			fmt.Println("Usao u summary")
+			fmt.Println("Usao u summary fajlove")
 			// for _, bfajl := range filter_files {
 			// 	BloomFilter
 			// }
@@ -37,30 +37,31 @@ func Citaj(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.Cache
 				}
 				offset, b := SSTable.NadjiSummary(kljuc, sumFile)
 				if b {
-					fmt.Println("Nasao u summary")
+					fmt.Println("Nasao u summary fajlu")
 					indBr := 0
 					for _, iFajl := range index_files {
-						fmt.Println("Usao u index")
 						indBr++
 						if indBr == sumBr {
+							fmt.Println("Cita u indexu")
 							indFile, err := os.OpenFile(path+"/SSTableData/"+iFajl, os.O_RDONLY, 0777)
 							if err != nil {
 								panic(err)
 							}
-							fmt.Println(iFajl)
 							b, offset1 := SSTable.NadjiIndex(offset, indFile, kljuc)
 							if b {
 								fmt.Println("Nasao u indexu")
-								indDat := 0
+								datBr := 0
 								for _, dataFajl := range data_files {
-									indDat++
-									if indDat == indDat {
+									datBr++
+									if datBr == indBr {
+										fmt.Println("Cita u data")
 										dataFile, err := os.OpenFile(path+"/SSTableData/"+dataFajl, os.O_RDONLY, 0777)
 										if err != nil {
 											panic(err)
 										}
 										b, value := SSTable.NadjiElement(offset1, dataFile, kljuc)
 										if b {
+											fmt.Println("Nasao u data")
 											return b, value
 
 										}
