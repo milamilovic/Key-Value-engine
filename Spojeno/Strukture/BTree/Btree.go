@@ -4,17 +4,17 @@ import "fmt"
 
 // func main() {
 // 	btree := makeBtree(3)
-// 	btree.add("3", []byte("a"))
+// 	btree.Add("3", []byte("a"))
 // 	fmt.Println(btree.root)
 // 	fmt.Println("ovde sam")
-// 	btree.add("vau", []byte("a"))
+// 	btree.Add("vau", []byte("a"))
 // 	fmt.Println("ovde sam 2")
-// 	btree.add("ne znam", []byte("a"))
+// 	btree.Add("ne znam", []byte("a"))
 // 	fmt.Println(btree.root)
-// 	btree.add("kuku", []byte("a"))
-// 	btree.add("fff", []byte("a"))
-// 	btree.add("1", []byte("ponovo isti kljuc"))
-// 	btree.add("4", []byte("a"))
+// 	btree.Add("kuku", []byte("a"))
+// 	btree.Add("fff", []byte("a"))
+// 	btree.Add("1", []byte("ponovo isti kljuc"))
+// 	btree.Add("4", []byte("a"))
 // 	fmt.Println()
 // 	fmt.Println()
 // 	fmt.Println(btree.root)
@@ -22,23 +22,28 @@ import "fmt"
 // 	fmt.Println(btree.root.children[1])
 // 	fmt.Println()
 // 	fmt.Println()
-// 	b, _ := btree.findElement("3")
+// 	b, _ := btree.FindElement("3")
 // 	print(b)
 // 	fmt.Println()
 // 	fmt.Println()
-// 	b, _ = btree.findElement("vau")
+// 	b, _ = btree.FindElement("vau")
 // 	print(b)
 // 	fmt.Println()
 // 	fmt.Println()
-// 	b, _ = btree.findElement("fff")
+// 	b, _ = btree.FindElement("fff")
 // 	print(b)
 // 	fmt.Println()
 // 	fmt.Println()
-// 	b, _ = btree.findElement("12") //ovo je false
+// 	b, _ = btree.FindElement("12") //ovo je false
 // 	print(b)
 // 	fmt.Println()
 // 	fmt.Println()
-// 	b, _ = btree.findElement("4")
+// 	b, _ = btree.FindElement("4")
+// 	print(b)
+// 	fmt.Println()
+// 	fmt.Println()
+// 	btree.LogDel("4")
+// 	b, _ = btree.FindElement("4")
 // 	print(b)
 // }
 
@@ -59,6 +64,7 @@ type BtreeNode struct {
 type Node struct {
 	key   string
 	value []byte
+	tombstone bool
 }
 
 func makeBtree(maxHeight int) *Btree {
@@ -67,6 +73,19 @@ func makeBtree(maxHeight int) *Btree {
 	k := 1
 	root := BtreeNode{make([]*Node, 4), make([]*BtreeNode, 4), i, j, nil}
 	return &Btree{&root, maxHeight + 1, k}
+}
+
+func (btree Btree) LogDel(key string) {
+	_, cvor := btree.FindElement(key)
+	if cvor == nil {
+		fmt.Println("Element ne postoji.")
+	} else {
+		if cvor.tombstone==false {
+			cvor.tombstone = true
+		} else {
+			fmt.Println("Element je vec obrisan")
+		}
+	}
 }
 
 func (btree *Btree) FindElement(key string) (bool, *Node) {
@@ -87,7 +106,7 @@ func (btree *Btree) FindElement(key string) (bool, *Node) {
 			//ako je ovaj dete tjt nasli smo
 			//fmt.Println("kljuc koji trazimo je ", key)
 			//fmt.Println(key == trenutnoDete.key)
-			if trenutnoDete.key == key {
+			if trenutnoDete.key == key && trenutnoDete.tombstone==false {
 				//fmt.Println("nasli smo trenutno dete")
 				return true, trenutnoDete
 			}
@@ -96,7 +115,7 @@ func (btree *Btree) FindElement(key string) (bool, *Node) {
 			}
 			//fmt.Println("kljuc sledeceg deteta je ", sledeceDete.key)
 			//ako je sledeci dete tjt nasli smo
-			if sledeceDete.key == key {
+			if sledeceDete.key == key && sledeceDete.tombstone==false{
 				//fmt.Println("nasli smo sledece dete")
 				return true, sledeceDete
 			}
@@ -211,7 +230,7 @@ func (btree *Btree) Add(key string, value []byte) {
 			// fmt.Println("nema elem na cvoru na kom smo")
 			// fmt.Println("stanje pre dodavanja")
 			// fmt.Println(trenutniCvor)
-			trenutniCvor.elements[0] = &Node{key, value}
+			trenutniCvor.elements[0] = &Node{key, value, false}
 			trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
 			trenutniCvor.max_children = trenutniCvor.num_of_elem + 1
 			if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
@@ -250,7 +269,7 @@ func (btree *Btree) Add(key string, value []byte) {
 							trenutniCvor.elements[m] = trenutniCvor.elements[m-1]
 							//fmt.Println(trenutniCvor)
 						}
-						trenutniCvor.elements[i+1] = &Node{key, value}
+						trenutniCvor.elements[i+1] = &Node{key, value, false}
 						trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
 						trenutniCvor.max_children = trenutniCvor.num_of_elem + 1
 						if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
@@ -278,7 +297,7 @@ func (btree *Btree) Add(key string, value []byte) {
 						//ako je veci od prethodnog dodajemo ga posle
 						// fmt.Println("stanje pre dodavanja")
 						// fmt.Println(trenutniCvor)
-						trenutniCvor.elements[1] = &Node{key, value}
+						trenutniCvor.elements[1] = &Node{key, value, false}
 						trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
 						trenutniCvor.max_children = trenutniCvor.num_of_elem + 1
 						if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
@@ -298,7 +317,7 @@ func (btree *Btree) Add(key string, value []byte) {
 						break
 					} else {
 						trenutniCvor.elements[1] = trenutniCvor.elements[0]
-						trenutniCvor.elements[0] = &Node{key, value}
+						trenutniCvor.elements[0] = &Node{key, value, false}
 						trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
 						trenutniCvor.max_children = trenutniCvor.num_of_elem + 1
 						if pokaz_na_roditelja == pokaz_na_trenutni_cvor {
@@ -323,7 +342,7 @@ func (btree *Btree) Add(key string, value []byte) {
 					// fmt.Println(trenutniCvor)
 					if trenutniCvor.elements[i] == nil {
 						//fmt.Println("lalala tu smo usli")
-						trenutniCvor.elements[i] = &Node{key, value}
+						trenutniCvor.elements[i] = &Node{key, value, false}
 						trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
 						trenutniCvor.max_children = trenutniCvor.num_of_elem + 1
 
@@ -345,7 +364,7 @@ func (btree *Btree) Add(key string, value []byte) {
 				}
 			}
 			if trenutniCvor.num_of_elem == 3 && !menjao_se_u_petlji {
-				trenutniCvor.elements[3] = &Node{key, value}
+				trenutniCvor.elements[3] = &Node{key, value, false}
 				trenutniCvor.num_of_elem = trenutniCvor.num_of_elem + 1
 				trenutniCvor.max_children = trenutniCvor.num_of_elem + 1
 
