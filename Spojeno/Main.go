@@ -1,6 +1,8 @@
 package main
 
 import (
+	brisanje "Operacije/Brisanje"
+	dodavanje "Operacije/Pisanje"
 	"Strukture/BloomFilter"
 	"Strukture/Cache"
 	"Strukture/CountMinSketch"
@@ -88,13 +90,30 @@ func initialize(odabran string) *Engine {
 func main() {
 	odabran := odabirMemTable()
 	engine := initialize(odabran)
-	menu()
-	makeCms(engine)
-	addCms("4", []byte("caoooo"), engine)
-	makeHll(engine)
-	addHll("6", engine)
-	estimateHll(engine)
-	makeSimHash()
+	menu(engine)
+}
+
+func nabavi_vrednosti_dodavanje() (string, []byte) {
+	fmt.Println("Unesite vrednost kljuca: ")
+	r := bufio.NewReader(os.Stdin)
+	kljuc, _ := r.ReadString('\n')
+	kljuc = strings.Replace(kljuc, "\n", "", 1)
+	kljuc = strings.Replace(kljuc, "\r", "", 1)
+	r = bufio.NewReader(os.Stdin)
+	fmt.Println("Unesite vrednost pod kljucem: ")
+	vrednost, _ := r.ReadString('\n')
+	vrednost = strings.Replace(vrednost, "\n", "", 1)
+	vrednost = strings.Replace(vrednost, "\r", "", 1)
+	return kljuc, []byte(vrednost)
+}
+
+func nabavi_vrednosti_brisanje() string {
+	fmt.Println("Unesite vrednost kljuca: ")
+	r := bufio.NewReader(os.Stdin)
+	kljuc, _ := r.ReadString('\n')
+	kljuc = strings.Replace(kljuc, "\n", "", 1)
+	kljuc = strings.Replace(kljuc, "\r", "", 1)
+	return kljuc
 }
 
 func odabirMemTable() string {
@@ -115,7 +134,7 @@ func odabirMemTable() string {
 	return unos
 
 }
-func menu() {
+func menu(engine *Engine) {
 	b := true
 	for b == true {
 		fmt.Println("****MENI*****")
@@ -124,6 +143,7 @@ func menu() {
 		fmt.Println("3:DELETE")
 		fmt.Println("4:LIST")
 		fmt.Println("5:RANGE SCAN")
+		fmt.Println("6:10+")
 		fmt.Println("x:kraj programa")
 		fmt.Println("Unesite broj ispred zeljene opcije")
 		r := bufio.NewReader(os.Stdin)
@@ -132,19 +152,32 @@ func menu() {
 		unos = strings.Replace(unos, "\r", "", 1)
 		switch unos {
 		case "1":
-			//put()
+			key, value := nabavi_vrednosti_dodavanje()
+			if engine.da_li_je_skip {
+				dodavanje.Dodaj_skiplist(key, value, engine.mems, engine.wal)
+			} else {
+				dodavanje.Dodaj_bstablo(key, value, engine.memb, engine.wal)
+			}
 			break
 		case "2":
 			//get()
 			break
 		case "3":
-			//delete()
+			key := nabavi_vrednosti_brisanje()
+			if engine.da_li_je_skip {
+				brisanje.Obrisi_skiplist(key, engine.mems, engine.cache)
+			} else {
+				brisanje.Obrisi_bstablo(key, engine.memb, engine.cache)
+			}
 			break
 		case "4":
 			//list()
 			break
 		case "5":
 			//rangeScan()
+			break
+		case "6":
+			desetPlusMeni(engine)
 			break
 		case "x":
 			b = false
@@ -155,6 +188,73 @@ func menu() {
 
 	}
 
+}
+
+func desetPlusMeni(engine *Engine) {
+	b := true
+	for b == true {
+		fmt.Println("**10+ meni***")
+		fmt.Println("1:NAPRAVI CMS")
+		fmt.Println("2:DODAJ U CMS")
+		fmt.Println("3:PROVERI CMS")
+		fmt.Println("4:NAPRAVI HLL")
+		fmt.Println("5:DODAJ U HLL")
+		fmt.Println("6:SERIJALIZUJ HLL")
+		fmt.Println("7:SIM HASH DEMONSTRACIJA")
+		fmt.Println("x:povratak na obican meni")
+		fmt.Println("Unesite broj ispred zeljene opcije")
+		r := bufio.NewReader(os.Stdin)
+		unos, _ := r.ReadString('\n')
+		unos = strings.Replace(unos, "\n", "", 1)
+		unos = strings.Replace(unos, "\r", "", 1)
+		switch unos {
+		case "1":
+			makeCms(engine)
+			break
+		case "2":
+			if engine.cms == nil {
+				fmt.Println("Morate prvo napraviti cms!")
+				break
+			}
+			key, value := nabavi_vrednosti_dodavanje()
+			addCms(key, value, engine)
+			break
+		case "3":
+			if engine.cms == nil {
+				fmt.Println("Morate prvo napraviti cms!")
+				break
+			}
+			kljuc := nabavi_vrednosti_brisanje()
+			fmt.Println(checkCms(kljuc, engine))
+			break
+		case "4":
+			makeHll(engine)
+			break
+		case "5":
+			if engine.hll == nil {
+				fmt.Println("Morate prvo napraviti hll!")
+				break
+			}
+			key := nabavi_vrednosti_brisanje()
+			addHll(key, engine)
+			break
+		case "6":
+			if engine.hll == nil {
+				fmt.Println("Morate prvo napraviti hll!")
+				break
+			}
+			saveHll(engine)
+			break
+		case "7":
+			makeSimHash()
+			break
+		case "x":
+			b = false
+			break
+		default:
+			fmt.Println("Pogresan unos")
+		}
+	}
 }
 
 func makeSimHash() {
@@ -177,6 +277,10 @@ func addCms(key string, value []byte, engine *Engine) {
 	if uspesno {
 		fmt.Println("Element je uspesno dodat u cms!")
 	}
+}
+
+func checkCms(key string, engine *Engine) int {
+	return engine.cms.Cms(key, engine.cms.Hashes, int(engine.cms.M))
 }
 
 func addHll(key string, engine *Engine) {
