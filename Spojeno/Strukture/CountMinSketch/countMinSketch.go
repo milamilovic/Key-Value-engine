@@ -4,6 +4,8 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 // func main() {
@@ -42,7 +44,9 @@ func CreateCMS(epsilon, delta float64) *CountMinSketch {
 	var k = CalculateK(delta)
 	hashes := make([]Hash, k)
 	hashes = HashFunctions(k)
-	file, _ := os.OpenFile("C:/Users/Sonja/Desktop/napredni.txt", os.O_CREATE, 0666)
+	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	file, _ := os.OpenFile(path+"/napredni.txt", os.O_CREATE, 0666)
 	bytes := make([]byte, m)
 	_, _ = file.WriteAt(bytes, 0)
 	file.Close()
@@ -82,7 +86,9 @@ func (h *Hash) Hash(kljuc string, m int) int {
 }
 
 func (countMin *CountMinSketch) Add(key string, hashes []Hash, m int) bool {
-	file, err := os.OpenFile("C:/Users/Sonja/Desktop/napredni.txt", os.O_CREATE, 0666)
+	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	file, err := os.OpenFile(path+"/napredni.txt", os.O_CREATE, 0666)
 	for i := 0; i < int(len(hashes)); i++ {
 		z := int64(i * int(m))
 		bytes := make([]byte, m)
@@ -101,7 +107,9 @@ func (countMin *CountMinSketch) Add(key string, hashes []Hash, m int) bool {
 }
 
 func (countMin *CountMinSketch) Cms(kljuc string, hashes []Hash, m int) int {
-	file, _ := os.OpenFile("C:/Users/Sonja/Desktop/napredni.txt", os.O_CREATE, 0666)
+	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	file, _ := os.OpenFile(path+"/napredni.txt", os.O_CREATE, 0666)
 	min := 100
 	for i := 0; i < int(len(hashes)); i++ {
 		z := int64(i * int(m))

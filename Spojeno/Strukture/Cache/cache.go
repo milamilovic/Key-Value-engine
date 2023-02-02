@@ -99,7 +99,7 @@ func (cache *Cache) DodajUCache(key string, value []byte) {
 		delete(cache.hashes, key) //brisemo staru vrednost iz hashes
 		b := cache.list.DodajCvor(key, value)
 		if b {
-			fmt.Println("Uspresno dodavanje")
+			fmt.Println("Uspesno dodavanje")
 			cache.hashes[key] = value
 		}
 	} else {
@@ -109,7 +109,7 @@ func (cache *Cache) DodajUCache(key string, value []byte) {
 		}
 		b := cache.list.DodajCvor(key, value)
 		if b {
-			fmt.Println("Uspresno dodavanje elementa")
+			fmt.Println("Uspesno dodavanje elementa")
 			cache.hashes[key] = value
 			cache.numberOfNew++
 		}
