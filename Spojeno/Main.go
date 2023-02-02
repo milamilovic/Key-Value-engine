@@ -62,10 +62,16 @@ func initialize() *Engine {
 		engine.konfiguracije["token_maxtok"], _ = strconv.Atoi(delovi[7])
 		engine.konfiguracije["token_interval"], _ = strconv.Atoi(delovi[8])
 	}
+<<<<<<< HEAD
 	engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1))
 	engine.memtable = MemTable.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
 	engine.cache = Cache.KreirajCache(engine.konfiguracije["cache_size"])
 	engine.wal = Wal.NapraviWal("Data\\Wal", engine.konfiguracije["wal_low_water_mark"])
+=======
+	engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], 0.1)
+	engine.memtable = MemTable.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
+	engine.wal = Wal.NapraviWal("Spojeno\\Data\\Wal", engine.konfiguracije["wal_low_water_mark"])
+>>>>>>> 001c9ebf4e37aebc4738131d0bc6d79ae381b4f6
 	return &engine
 }
 
