@@ -1,19 +1,20 @@
-package main
+package LSMTree
 
 import (
 	"Strukture/SSTable"
 	"io/ioutil"
-	"path/filepath"
+
+	//"path/filepath"
 	"strconv"
 	"strings"
 )
 
-func main() {
-	path1, _ := filepath.Abs("../Key-Value-engine/Data")
-	path := strings.ReplaceAll(path1, `\`, "/")
-	stablo := Kreiraj_lsmTree(4, 1, 8)
-	kompakcije(*stablo, 1, path)
-}
+//func main() {
+//	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+//	path := strings.ReplaceAll(path1, `\`, "/")
+//	stablo := Kreiraj_lsmTree(4, 1, 8)
+//	kompakcije(*stablo, 1, path)
+//}
 
 type lsm struct {
 	najveci_nivo     int
