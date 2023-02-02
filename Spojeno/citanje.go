@@ -1,5 +1,9 @@
 package citanje
 
-func citaj(key string){
+import (
+	"Strukture/BloomFilter"
+)
 
+func citaj(key string, bloomFilter *BloomFilter.BloomFilter) {
+	// LSMTree.Svi_fajlovi()
 }

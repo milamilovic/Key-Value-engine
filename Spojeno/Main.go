@@ -105,7 +105,6 @@ func odabirMemTable() string {
 	return unos
 
 }
-
 func menu() {
 	b := true
 	for b == true {
