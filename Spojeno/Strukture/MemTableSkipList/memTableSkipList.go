@@ -28,7 +28,7 @@ func (memTable *MemTable) Add(key string, value []byte) {
 	if b == false {
 		if cvor == nil {
 			memTable.elementi.Add(key, value)
-			fmt.Println("Ubacili smo novi element u skip listu")
+			//fmt.Println("Ubacili smo novi element u skip listu")
 			memTable.trenutnaVelicina++
 		}
 	}

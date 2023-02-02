@@ -1,6 +1,8 @@
 package main
 
 import (
+	brisanje "Operacije/Brisanje"
+	dodavanje "Operacije/Pisanje"
 	"Strukture/BloomFilter"
 	"Strukture/Cache"
 	"Strukture/CountMinSketch"
@@ -150,13 +152,23 @@ func menu(engine *Engine) {
 		unos = strings.Replace(unos, "\r", "", 1)
 		switch unos {
 		case "1":
-			//put()
+			key, value := nabavi_vrednosti_dodavanje()
+			if engine.da_li_je_skip {
+				dodavanje.Dodaj_skiplist(key, value, engine.mems, engine.wal)
+			} else {
+				dodavanje.Dodaj_bstablo(key, value, engine.memb, engine.wal)
+			}
 			break
 		case "2":
 			//get()
 			break
 		case "3":
-			//delete()
+			key := nabavi_vrednosti_brisanje()
+			if engine.da_li_je_skip {
+				brisanje.Obrisi_skiplist(key, engine.mems, engine.cache)
+			} else {
+				brisanje.Obrisi_bstablo(key, engine.memb, engine.cache)
+			}
 			break
 		case "4":
 			//list()
