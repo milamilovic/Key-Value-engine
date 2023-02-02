@@ -13,7 +13,7 @@ import (
 )
 
 func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
-	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	datFile, errData := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
@@ -199,7 +199,7 @@ func NadjiElement(offset uint64, f *os.File, kljuc string) (bool, []byte) {
 }
 
 func Kompakcija(brojFajlova int, maxLevel int, level int, listLen int) {
-	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	br := 0
 
@@ -291,7 +291,7 @@ func Kompakcija(brojFajlova int, maxLevel int, level int, listLen int) {
 }
 
 func NapraviTOC(level int, index int) {
-	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	tocFile, err := os.OpenFile(path+"/TOCFiles/TocFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index-1)+".db", os.O_CREATE|os.O_WRONLY, 0777)
@@ -327,7 +327,7 @@ func NapraviTOC(level int, index int) {
 }
 
 func ObrisiFajlove(level int, index int) {
-	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	err1 := os.Remove(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index) + ".db")
@@ -383,7 +383,7 @@ func ObrisiFajlove(level int, index int) {
 }
 
 func NovoImeFajla(level int) int {
-	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	br := 1
 	for {

@@ -38,7 +38,7 @@ func New_bloom(how_many_keys int, false_positive float64) *BloomFilter {
 	var m = CalculateM(how_many_keys, 0.01)
 	var k = CalculateK(how_many_keys, m)
 	hashes := Make_hashes(k, m)
-	path1, _ := filepath.Abs("../Key-Value-engine/Strukture")
+	path1, _ := filepath.Abs("../Spojeno/Strukture")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	file, _ := os.OpenFile(path+"/BloomFilter/filter.txt", os.O_CREATE, 0666)
 	bytes := make([]byte, m)
@@ -48,7 +48,7 @@ func New_bloom(how_many_keys int, false_positive float64) *BloomFilter {
 }
 
 func (bloom *BloomFilter) Add(key string) bool {
-	path1, _ := filepath.Abs("../Key-Value-engine/Strukture")
+	path1, _ := filepath.Abs("../Spojeno/Strukture")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	file, _ := os.OpenFile(path+"/BloomFilter/filter.txt", os.O_CREATE, 0666)
 	bytes := make([]byte, int(bloom.m))
@@ -69,7 +69,7 @@ func (bloom *BloomFilter) Add(key string) bool {
 }
 
 func (bloom *BloomFilter) Find(kljuc string) bool {
-	path1, _ := filepath.Abs("../Key-Value-engine/Strukture")
+	path1, _ := filepath.Abs("../Spojeno/Strukture")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	file, _ := os.OpenFile(path+"/BloomFilter/filter.txt", os.O_CREATE, 0666)
 	bytes := bloom.bytes
