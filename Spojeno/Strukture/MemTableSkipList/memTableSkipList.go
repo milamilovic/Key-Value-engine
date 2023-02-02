@@ -13,6 +13,11 @@ type MemTable struct {
 	trenutnaVelicina int
 }
 
+func (memTable *MemTable) NadjiElement(kljuc string) (bool, []byte) {
+	b, cvor := memTable.elementi.NadjiElement(kljuc)
+	value := cvor.GetValue()
+	return b, value
+}
 func KreirajMemTable(max, velicina int) *MemTable {
 	elementi := SkipList.NapraviSkipList(velicina)
 	return &MemTable{elementi, velicina, max, 0}
