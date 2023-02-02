@@ -175,7 +175,7 @@ func addHll(key string, engine *Engine) {
 }
 
 func saveHll(engine *Engine) {
-	podaci:=HyperLogLog.Serijalizacija(engine.hll)
+	podaci := HyperLogLog.Serijalizacija(engine.hll)
 	os.WriteFile("Spojeno\\Strukture\\HyperLogLog\\hll.bin", podaci, os.FileMode(os.O_RDWR))
 }
 
