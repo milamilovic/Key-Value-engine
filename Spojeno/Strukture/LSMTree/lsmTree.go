@@ -16,18 +16,18 @@ import (
 //	kompakcije(*stablo, 1, path)
 //}
 
-type lsm struct {
+type Lsm struct {
 	najveci_nivo     int
 	najveca_velicina int
 	najveci_listLen  int
 }
 
-func Kreiraj_lsmTree(nivo int, velicina int, listLen int) *lsm {
-	LSM := lsm{nivo, velicina, listLen}
+func Kreiraj_lsmTree(nivo int, velicina int, listLen int) *Lsm {
+	LSM := Lsm{nivo, velicina, listLen}
 	return &LSM
 }
 
-func svi_fajlovi(n int, folder string) ([]string, []string, []string, []string, []string) {
+func Svi_fajlovi(n int, folder string) ([]string, []string, []string, []string, []string) {
 	nivo := strconv.Itoa(n)
 	fajlovi, err := ioutil.ReadDir(folder)
 	if err != nil {
@@ -81,8 +81,8 @@ func svi_fajlovi(n int, folder string) ([]string, []string, []string, []string, 
 	return data_files, filter_files, index_files, summary_files, toc_files
 }
 
-func da_li_nastavljamo(LSM lsm, n int, folder string) ([]string, []string, []string, []string, []string, bool) {
-	data_files, filter_files, index_files, summary_files, toc_files := svi_fajlovi(n, folder)
+func Da_li_nastavljamo(LSM Lsm, n int, folder string) ([]string, []string, []string, []string, []string, bool) {
+	data_files, filter_files, index_files, summary_files, toc_files := Svi_fajlovi(n, folder)
 	var da_ne bool
 	if len(data_files) == LSM.najveca_velicina && len(data_files) > 0 {
 		da_ne = false //znaci da ne nastavljamo kompakcije
@@ -92,15 +92,15 @@ func da_li_nastavljamo(LSM lsm, n int, folder string) ([]string, []string, []str
 	return data_files, filter_files, index_files, summary_files, toc_files, da_ne
 }
 
-func kompakcije(LSM lsm, n int, folder string) {
+func Kompakcije(LSM Lsm, n int, folder string) {
 	if n >= LSM.najveci_nivo {
 		return // dosli smo do poslednjeg nivoa
 	}
 	//data_files, filter_files, index_files, summary_files, toc_files, da_ne := da_li_nastavljamo(LSM, n, folder)
-	data_files, _, _, _, _, da_ne := da_li_nastavljamo(LSM, n, folder)
+	data_files, _, _, _, _, da_ne := Da_li_nastavljamo(LSM, n, folder)
 	if da_ne == false {
 		return // ne radimo kompakciju
 	}
 	// else , radimo kompakciju
-	SSTable.Compaction(len(data_files), LSM.najveci_nivo, n, LSM.najveci_listLen)
+	SSTable.Kompakcija(len(data_files), LSM.najveci_nivo, n, LSM.najveci_listLen)
 }
