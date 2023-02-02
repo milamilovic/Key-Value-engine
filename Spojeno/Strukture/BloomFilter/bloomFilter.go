@@ -32,7 +32,7 @@ type BloomFilter struct {
 	bytes               []byte
 }
 
-func New_bloom(how_many_keys int, false_positive float64) BloomFilter {
+func New_bloom(how_many_keys int, false_positive float64) *BloomFilter {
 	var m = CalculateM(how_many_keys, 0.01)
 	var k = CalculateK(how_many_keys, m)
 	hashes := Make_hashes(k, m)
@@ -40,7 +40,7 @@ func New_bloom(how_many_keys int, false_positive float64) BloomFilter {
 	bytes := make([]byte, m)
 	_, _ = file.WriteAt(bytes, 0)
 	file.Close()
-	return BloomFilter{m, k, how_many_keys, false_positive, hashes, bytes}
+	return &BloomFilter{m, k, how_many_keys, false_positive, hashes, bytes}
 }
 
 func (bloom *BloomFilter) Add(key string) bool {

@@ -7,20 +7,23 @@ import (
 	"Strukture/HyperLogLog"
 	"Strukture/MemTable"
 	"Strukture/Wal"
+	"bufio"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 )
 
 type Engine struct {
-	bloom         BloomFilter.BloomFilter
-	memtable      MemTable.MemTable
-	cache         Cache.Cache
-	wal           Wal.Wal
+	bloom         *BloomFilter.BloomFilter
+	memtable      *MemTable.MemTable
+	cache         *Cache.Cache
+	wal           *Wal.Wal
 	konfiguracije map[string]int
 }
 
 func default_konfig(engine *Engine) {
-	engine.konfiguracije["memtable_max_velicina"] = 15
+	engine.konfiguracije["memtable_max_velicina"] = 2
 	engine.konfiguracije["cache_size"] = 10
 	engine.konfiguracije["sst_level"] = 3
 	engine.konfiguracije["sst_index"] = 4
@@ -31,6 +34,14 @@ func default_konfig(engine *Engine) {
 	engine.konfiguracije["token_interval"] = 60
 }
 
+func SplitLines(s string) []string {
+	var lines []string
+	sc := bufio.NewScanner(strings.NewReader(s))
+	for sc.Scan() {
+		lines = append(lines, sc.Text())
+	}
+	return lines
+}
 func initialize() *Engine {
 	engine := Engine{}
 	engine.konfiguracije = make(map[string]int)
@@ -39,16 +50,32 @@ func initialize() *Engine {
 		default_konfig(&engine)
 	} else {
 		fmt.Println(string(file))
+		delovi := SplitLines(string(file))
+		fmt.Println(delovi)
+		engine.konfiguracije["memtable_max_velicina"], _ = strconv.Atoi(delovi[0])
+		engine.konfiguracije["cache_size"], _ = strconv.Atoi(delovi[1])
+		engine.konfiguracije["sst_level"], _ = strconv.Atoi(delovi[2])
+		engine.konfiguracije["sst_index"], _ = strconv.Atoi(delovi[3])
+		engine.konfiguracije["lsm_level"], _ = strconv.Atoi(delovi[4])
+		engine.konfiguracije["wal_low_water_mark"], _ = strconv.Atoi(delovi[5])
+		engine.konfiguracije["token_key"], _ = strconv.Atoi(delovi[6])
+		engine.konfiguracije["token_maxtok"], _ = strconv.Atoi(delovi[7])
+		engine.konfiguracije["token_interval"], _ = strconv.Atoi(delovi[8])
 	}
-	engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], 0.1)
-	engine.memtable = *MemTable.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
-	engine.wal = Wal.NapraviWal("Spojeno\\Data\\Wal", engine.konfiguracije["wal_low_water_mark"])
+	engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1))
+	engine.memtable = MemTable.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
+	engine.cache = Cache.KreirajCache(engine.konfiguracije["cache_size"])
+	engine.wal = Wal.NapraviWal("Data\\Wal", engine.konfiguracije["wal_low_water_mark"])
 	return &engine
 }
 
 func main() {
 	engine := initialize()
+	fmt.Println()
+	fmt.Println()
 	fmt.Println(engine)
+	makeCms()
+	makeHll()
 }
 
 func makeCms() {
