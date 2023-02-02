@@ -5,7 +5,7 @@ import (
 	"Strukture/Cache"
 	"Strukture/CountMinSketch"
 	"Strukture/HyperLogLog"
-	"Strukture/MemTable"
+	"Strukture/MemTableSkipList"
 	"Strukture/SimHash"
 	"Strukture/Wal"
 	"bufio"
@@ -17,7 +17,7 @@ import (
 
 type Engine struct {
 	bloom         *BloomFilter.BloomFilter
-	memtable      *MemTable.MemTable
+	memtable      *MemTableSkipList.MemTable
 	cache         *Cache.Cache
 	wal           *Wal.Wal
 	konfiguracije map[string]int
@@ -43,7 +43,7 @@ func SplitLines(s string) []string {
 	}
 	return lines
 }
-func initialize() *Engine {
+func initialize(odabran string) *Engine {
 	engine := Engine{}
 	engine.konfiguracije = make(map[string]int)
 	file, err := os.ReadFile("Data/Konfiguracije/konfiguracije.txt")
@@ -64,14 +64,15 @@ func initialize() *Engine {
 		engine.konfiguracije["token_interval"], _ = strconv.Atoi(delovi[8])
 	}
 	engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1))
-	engine.memtable = MemTable.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
+	engine.memtable = MemTableSkipList.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
 	engine.cache = Cache.KreirajCache(engine.konfiguracije["cache_size"])
 	engine.wal = Wal.NapraviWal("Data\\Wal", engine.konfiguracije["wal_low_water_mark"])
 	return &engine
 }
 
 func main() {
-	engine := initialize()
+	odabran := odabirMemTable()
+	engine := initialize(odabran)
 	fmt.Println()
 	fmt.Println()
 	fmt.Println(engine)
@@ -79,6 +80,24 @@ func main() {
 	makeCms()
 	makeHll()
 	makeSimHash()
+}
+func odabirMemTable() string {
+	fmt.Println("Unesite da li za MemTable hocete da koristite Btree ili SkipList")
+	fmt.Println("1:SkipList")
+	fmt.Println("2:Btree")
+	r := bufio.NewReader(os.Stdin)
+	unos, _ := r.ReadString('\n')
+	unos = strings.Replace(unos, "\n", "", 1)
+	unos = strings.Replace(unos, "\r", "", 1)
+	for unos != "1" && unos != "2" {
+		fmt.Println("Pogresan unos!")
+		r := bufio.NewReader(os.Stdin)
+		unos, _ := r.ReadString('\n')
+		unos = strings.Replace(unos, "\n", "", 1)
+		unos = strings.Replace(unos, "\r", "", 1)
+	}
+	return unos
+
 }
 func menu() {
 	b := true
@@ -124,10 +143,10 @@ func menu() {
 
 func makeSimHash() {
 	fmt.Println("fingerprint prvog teksta: ")
-	sim1:=SimHash.SimHash("Strukture\\SimHash\\simHash.txt")
+	sim1 := SimHash.SimHash("Strukture\\SimHash\\simHash.txt")
 	fmt.Println(sim1)
 	fmt.Println("fingerprint drugog teksta: ")
-	sim2:=SimHash.SimHash("Strukture\\SimHash\\simHash2.txt")
+	sim2 := SimHash.SimHash("Strukture\\SimHash\\simHash2.txt")
 	fmt.Println(sim2)
 	fmt.Println("Hemingova razdaljina ova dva teksta: ")
 	fmt.Println(SimHash.Hamming(sim1, sim2))

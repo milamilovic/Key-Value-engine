@@ -51,7 +51,7 @@ type Btree struct {
 	root      *BtreeNode
 	maxHeight int
 	height    int
-	size int
+	size      int
 }
 
 type BtreeNode struct {
@@ -63,12 +63,26 @@ type BtreeNode struct {
 }
 
 type Node struct {
-	key   string
-	value []byte
+	key       string
+	value     []byte
 	tombstone bool
 }
 
-func makeBtree(maxHeight int) *Btree {
+func (node *Node) GetKey() string {
+	return node.key
+}
+func (node *Node) GetValue() []byte {
+	return node.value
+}
+func (node *Node) GetTombstone() bool {
+	return node.tombstone
+}
+
+func MakeNode(key string, value []byte, tombstone bool) *Node {
+	return &Node{key, value, tombstone}
+
+}
+func MakeBtree(maxHeight int) *Btree {
 	i := 0
 	j := 0
 	k := 1
@@ -81,7 +95,7 @@ func (btree Btree) LogDel(key string) {
 	if cvor == nil {
 		fmt.Println("Element ne postoji.")
 	} else {
-		if cvor.tombstone==false {
+		if cvor.tombstone == false {
 			cvor.tombstone = true
 		} else {
 			fmt.Println("Element je vec obrisan")
@@ -107,7 +121,7 @@ func (btree *Btree) FindElement(key string) (bool, *Node) {
 			//ako je ovaj dete tjt nasli smo
 			//fmt.Println("kljuc koji trazimo je ", key)
 			//fmt.Println(key == trenutnoDete.key)
-			if trenutnoDete.key == key && trenutnoDete.tombstone==false {
+			if trenutnoDete.key == key && trenutnoDete.tombstone == false {
 				//fmt.Println("nasli smo trenutno dete")
 				return true, trenutnoDete
 			}
@@ -116,7 +130,7 @@ func (btree *Btree) FindElement(key string) (bool, *Node) {
 			}
 			//fmt.Println("kljuc sledeceg deteta je ", sledeceDete.key)
 			//ako je sledeci dete tjt nasli smo
-			if sledeceDete.key == key && sledeceDete.tombstone==false{
+			if sledeceDete.key == key && sledeceDete.tombstone == false {
 				//fmt.Println("nasli smo sledece dete")
 				return true, sledeceDete
 			}

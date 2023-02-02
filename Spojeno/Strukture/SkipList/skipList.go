@@ -34,6 +34,17 @@ import (
 
 // }
 
+type Node struct {
+	key       string
+	value     []byte
+	tombstone bool
+}
+
+func MakeNode(key string, value []byte, tombstone bool) *Node {
+	return &Node{key, value, tombstone}
+
+}
+
 type SkipList struct {
 	maxHeight int
 	height    int
