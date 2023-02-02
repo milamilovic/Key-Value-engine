@@ -4,8 +4,6 @@ import (
 	"math"
 	"math/rand"
 	"os"
-	"path/filepath"
-	"strings"
 )
 
 // func main() {
@@ -36,22 +34,15 @@ type CountMinSketch struct {
 	Hashes  []Hash
 	delta   float64
 	epsilon float64
-	bytes   []byte
+	Bytes   []byte
 }
 
 func CreateCMS(epsilon, delta float64) *CountMinSketch {
 	var m = CalculateM(epsilon)
 	var k = CalculateK(delta)
-	hashes := make([]Hash, k)
-	hashes = HashFunctions(k)
-	path1, _ := filepath.Abs("..")
-	path := strings.ReplaceAll(path1, `\`, "/")
-	file, _ := os.OpenFile(path+"/cms.txt", os.O_CREATE, 0666)
+	hashes := HashFunctions(k)
 	bytes := make([]byte, m)
-	_, _ = file.WriteAt(bytes, 0)
-	file.Close()
-
-	return &CountMinSketch{k: k, M: m, Hashes: hashes, delta: delta, epsilon: epsilon, bytes: bytes}
+	return &CountMinSketch{k: k, M: m, Hashes: hashes, delta: delta, epsilon: epsilon, Bytes: bytes}
 
 }
 
@@ -85,41 +76,25 @@ func (h *Hash) Hash(kljuc string, m int) int {
 	return hesirana % m
 }
 
-func (countMin *CountMinSketch) Add(key string, hashes []Hash, m int) bool {
-	path1, _ := filepath.Abs("..")
-	path := strings.ReplaceAll(path1, `\`, "/")
-	file, err := os.OpenFile(path+"/cms.txt", os.O_CREATE, 0666)
+func Add(key string, hashes []Hash, m int, bajtovi []byte) []byte {
 	for i := 0; i < int(len(hashes)); i++ {
-		z := int64(i * int(m))
-		bytes := make([]byte, m)
-		file.ReadAt(bytes, z)
-		for j := 0; j < len(hashes); j++ {
-			bytes[hashes[j].Hash(key, m)] += 1
-		}
-		_, err = file.WriteAt(bytes, z)
+		bajtovi[hashes[i].Hash(key, m)] += 1
 	}
-	file.Close()
-	if err != nil {
-		return false
-	} else {
-		return true
-	}
+	return bajtovi
 }
 
-func (countMin *CountMinSketch) Cms(kljuc string, hashes []Hash, m int) int {
-	path1, _ := filepath.Abs("..")
-	path := strings.ReplaceAll(path1, `\`, "/")
-	file, _ := os.OpenFile(path+"/cms.txt", os.O_CREATE, 0666)
+func Cms(kljuc string, hashes []Hash, m int, bajtovi []byte) int {
 	min := 100
 	for i := 0; i < int(len(hashes)); i++ {
-		z := int64(i * int(m))
-		bytes := make([]byte, m)
-		file.ReadAt(bytes, z)
 		for j := 0; j < len(hashes); j++ {
-			if bytes[hashes[j].Hash(kljuc, m)] < byte(min) {
-				min = int(bytes[hashes[j].Hash(kljuc, m)])
+			if bajtovi[hashes[j].Hash(kljuc, m)] < byte(min) {
+				min = int(bajtovi[hashes[j].Hash(kljuc, m)])
 			}
 		}
 	}
 	return min
+}
+
+func Serijalizacija(bajtovi []byte, filename string) {
+	os.WriteFile(filename, bajtovi, 0666)
 }
