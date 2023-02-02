@@ -3,7 +3,9 @@ package citanje
 import (
 	"Strukture/Cache"
 	"Strukture/MemTableSkipList"
+	"Strukture/SSTable"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -11,7 +13,7 @@ import (
 func citaj(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.Cache) (bool, []byte) {
 	path1, _ := filepath.Abs("../Key-Value-engine/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
-	data_files, filter_files, index_files, summary_files, _ := Svi_fajlovi(path)
+	data_files, _, index_files, summary_files, _ := Svi_fajlovi(path)
 	b, value := memTable.NadjiElement(kljuc)
 	if b {
 		return b, value
@@ -21,15 +23,55 @@ func citaj(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.Cache
 			value, _ = cache.NadjiUCache(kljuc)
 			return b, value
 		} else {
-			//trazimo dalje
+			// for _, bfajl := range filter_files {
+			// 	BloomFilter
+			// }
+			sumBr := 0
+			for _, sfajl := range summary_files {
+				sumBr++
+				sumFile, err := os.OpenFile(sfajl, os.O_RDONLY, 0777)
+				if err != nil {
+					panic(err)
+				}
+				offset, b := SSTable.NadjiSummary(kljuc, sumFile)
+				if b {
+					indBr := 0
+					for _, iFajl := range index_files {
+						indBr++
+						if indBr == sumBr {
+							indFile, err := os.OpenFile(iFajl, os.O_RDONLY, 0777)
+							if err != nil {
+								panic(err)
+							}
+							b, offset := SSTable.NadjiIndex(offset, indFile, kljuc)
+							if b {
+								indDat := 0
+								for _, dataFajl := range data_files {
+									indDat++
+									if indDat == indDat {
+										dataFile, err := os.OpenFile(dataFajl, os.O_RDONLY, 0777)
+										if err != nil {
+											panic(err)
+										}
+										b, value := SSTable.NadjiElement(offset, dataFile, kljuc)
+										if b {
+											return b, value
+										}
+									}
+								}
+							}
+						}
+
+					}
+
+				}
+			}
 		}
 
 	}
-	for elem := range filter_files {
-		print(elem)
-	}
-
+	return false, nil
 }
+
 func Svi_fajlovi(folder string) ([]string, []string, []string, []string, []string) {
 	fajlovi, err := ioutil.ReadDir(folder)
 	if err != nil {
