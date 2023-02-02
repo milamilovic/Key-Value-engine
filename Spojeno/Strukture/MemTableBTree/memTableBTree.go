@@ -21,6 +21,11 @@ func KreirajMemTable(max, velicina int) *MemTable {
 	elementi := BTree.MakeBtree(velicina)
 	return &MemTable{elementi, velicina, max, 0}
 }
+func (memTable *MemTable) NadjiElement(kljuc string) (bool, []byte) {
+	b, cvor := memTable.elementi.FindElement(kljuc)
+	value := cvor.GetValue()
+	return b, value
+}
 
 func (memTable *MemTable) Add(key string, value []byte) {
 	b, cvor := memTable.elementi.FindElement(key)

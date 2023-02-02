@@ -22,6 +22,7 @@ type Engine struct {
 	wal           *Wal.Wal
 	konfiguracije map[string]int
 	cms           *CountMinSketch.CountMinSketch
+	hll           *HyperLogLog.HLL
 }
 
 func default_konfig(engine *Engine) {
@@ -79,9 +80,10 @@ func main() {
 	fmt.Println(engine)
 	menu()
 	makeCms(engine)
-	makeHll()
 	addCms("4", []byte("caoooo"), engine)
-	addHll("6")
+	makeHll(engine)
+	addHll("6", engine)
+	estimateHll(engine)
 	makeSimHash()
 }
 
@@ -163,27 +165,26 @@ func makeCms(engine *Engine) {
 func addCms(key string, value []byte, engine *Engine) {
 	uspesno := engine.cms.Add(key, engine.cms.Hashes, int(engine.cms.M))
 	if uspesno {
-		fmt.Println("Element je uspesno dodat!")
+		fmt.Println("Element je uspesno dodat u cms!")
 	}
 }
 
-func addHll(key string) {
-	file, _ := os.ReadFile("Strukture/HyperLogLog/hll.bin")
-	hll := HyperLogLog.Deserijalizacija(file)
-	hll.Add(key)
+func addHll(key string, engine *Engine) {
+	engine.hll.Add(key)
+	fmt.Println("Element je uspesno dodat u hll!")
 }
 
-func estimateHll() {
-	file, _ := os.ReadFile("Strukture\\HyperLogLog\\hll.bin")
-	hll := HyperLogLog.Deserijalizacija(file)
-	hll.Estimate()
+func saveHll(engine *Engine) {
+	podaci := HyperLogLog.Serijalizacija(engine.hll)
+	os.WriteFile("Spojeno\\Strukture\\HyperLogLog\\hll.bin", podaci, os.FileMode(os.O_RDWR))
 }
 
-func makeHll() {
+func estimateHll(engine *Engine) {
+	fmt.Println("Procena broja elemenata u hll: ")
+	fmt.Println(engine.hll.Estimate())
+}
+
+func makeHll(engine *Engine) {
 	hll := HyperLogLog.MakeHyperLogLog(HyperLogLog.HLL_MAX_PRECISION)
-	podaci := HyperLogLog.Serijalizacija(&hll)
-	file, _ := os.OpenFile("Strukture\\HyperLogLog\\hll.bin", os.O_RDWR, 0666)
-	file.Seek(0, 0)
-	file.Write(podaci)
-	file.Close()
+	engine.hll = hll
 }

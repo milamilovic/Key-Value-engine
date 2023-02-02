@@ -25,9 +25,10 @@ const (
 	HLL_MAX_PRECISION = 16
 )
 
-func MakeHyperLogLog(preciznost int) HLL {
+func MakeHyperLogLog(preciznost int) *HLL {
 	var m = uint64(math.Pow(2, float64(preciznost)))
-	return HLL{m: m, p: uint8(preciznost), reg: make([]uint8, m)}
+	hll := HLL{m: m, p: uint8(preciznost), reg: make([]uint8, m)}
+	return &hll
 }
 
 type HLL struct {

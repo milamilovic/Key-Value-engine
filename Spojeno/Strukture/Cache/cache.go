@@ -115,7 +115,9 @@ func (cache *Cache) DodajUCache(key string, value []byte) {
 		}
 	}
 }
-func (cache *Cache) NadjiUCache(key string) ([]byte, bool) {
+
+func (cache *Cache) NadjiUCache(key string) ([]byte, bool) { //ovde ne menjamo nista samo proveravamo
+
 	val, ok := cache.hashes[key]
 	if ok {
 		return val, true
@@ -123,21 +125,20 @@ func (cache *Cache) NadjiUCache(key string) ([]byte, bool) {
 		return nil, false
 	}
 }
-func (cache *Cache) GetFromCache(key string) *CacheNode {
+func (cache *Cache) GetFromCache(key string) (bool, *CacheNode) {
 	_, ok := cache.hashes[key]
 	if ok {
 		node := cache.list.NadjiUListi(key)
 		cache.list.ObrisiCvor(node)
 		b := cache.list.DodajCvor(node.key, node.value) //pristupili smo mu pa ga brisemo, i ubacujemo na pocetak
 		if b {
-			fmt.Println("Uspesan pristup elementu")
-			return node
+			return b, node //nasao ga je
 		} else {
-			return nil
+			return false, nil
 		}
 
 	} else {
-		return nil
+		return false, nil
 	}
 }
 func (cache *Cache) ObrisiIzCache(key string) bool {
