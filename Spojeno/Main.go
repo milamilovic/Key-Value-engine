@@ -84,10 +84,7 @@ func main() {
 	addHll("6")
 	makeSimHash()
 }
-<<<<<<< HEAD
-=======
-	
->>>>>>> 50de1c4bc0ca2baad3a91be4326e16d278bbb062
+
 func odabirMemTable() string {
 	fmt.Println("Unesite da li za MemTable hocete da koristite Btree ili SkipList")
 	fmt.Println("1:SkipList")
@@ -106,10 +103,7 @@ func odabirMemTable() string {
 	return unos
 
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> 50de1c4bc0ca2baad3a91be4326e16d278bbb062
 func menu() {
 	b := true
 	for b == true {
