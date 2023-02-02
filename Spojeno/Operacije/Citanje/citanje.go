@@ -4,14 +4,15 @@ import (
 	"Strukture/Cache"
 	"Strukture/MemTableSkipList"
 	"Strukture/SSTable"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-func citaj(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.Cache) (bool, []byte) {
-	path1, _ := filepath.Abs("../Key-Value-engine/Data")
+func Citaj(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.Cache) (bool, []byte) {
+	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	data_files, _, index_files, summary_files, _ := Svi_fajlovi(path)
 	b, value := memTable.NadjiElement(kljuc)
@@ -23,39 +24,45 @@ func citaj(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.Cache
 			value, _ = cache.NadjiUCache(kljuc)
 			return b, value
 		} else {
+			fmt.Println("Usao u summary")
 			// for _, bfajl := range filter_files {
 			// 	BloomFilter
 			// }
 			sumBr := 0
-			for _, sfajl := range summary_files {
+			for _, sFajl := range summary_files {
 				sumBr++
-				sumFile, err := os.OpenFile(sfajl, os.O_RDONLY, 0777)
+				sumFile, err := os.OpenFile(path+"/SSTableData/"+sFajl, os.O_RDONLY, 0777)
 				if err != nil {
 					panic(err)
 				}
 				offset, b := SSTable.NadjiSummary(kljuc, sumFile)
 				if b {
+					fmt.Println("Nasao u summary")
 					indBr := 0
 					for _, iFajl := range index_files {
+						fmt.Println("Usao u index")
 						indBr++
 						if indBr == sumBr {
-							indFile, err := os.OpenFile(iFajl, os.O_RDONLY, 0777)
+							indFile, err := os.OpenFile(path+"/SSTableData/"+iFajl, os.O_RDONLY, 0777)
 							if err != nil {
 								panic(err)
 							}
-							b, offset := SSTable.NadjiIndex(offset, indFile, kljuc)
+							fmt.Println(iFajl)
+							b, offset1 := SSTable.NadjiIndex(offset, indFile, kljuc)
 							if b {
+								fmt.Println("Nasao u indexu")
 								indDat := 0
 								for _, dataFajl := range data_files {
 									indDat++
 									if indDat == indDat {
-										dataFile, err := os.OpenFile(dataFajl, os.O_RDONLY, 0777)
+										dataFile, err := os.OpenFile(path+"/SSTableData/"+dataFajl, os.O_RDONLY, 0777)
 										if err != nil {
 											panic(err)
 										}
-										b, value := SSTable.NadjiElement(offset, dataFile, kljuc)
+										b, value := SSTable.NadjiElement(offset1, dataFile, kljuc)
 										if b {
 											return b, value
+
 										}
 									}
 								}

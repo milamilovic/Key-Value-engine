@@ -2,6 +2,7 @@ package main
 
 import (
 	brisanje "Operacije/Brisanje"
+	citanje "Operacije/Citanje"
 	dodavanje "Operacije/Pisanje"
 	"Strukture/BloomFilter"
 	"Strukture/Cache"
@@ -155,12 +156,30 @@ func menu(engine *Engine) {
 			key, value := nabavi_vrednosti_dodavanje()
 			if engine.da_li_je_skip {
 				dodavanje.Dodaj_skiplist(key, value, engine.mems, engine.wal)
+				if engine.mems.ProveriFlush() {
+					engine.mems.Flush()
+					engine.mems = MemTableSkipList.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
+
+				}
 			} else {
 				dodavanje.Dodaj_bstablo(key, value, engine.memb, engine.wal)
+				if engine.memb.ProveriFlush() {
+					engine.memb.Flush()
+					engine.memb = MemTableBTree.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
+
+				}
 			}
 			break
 		case "2":
-			//get()
+			key := nabavi_vrednosti_brisanje()
+			if engine.da_li_je_skip {
+				b, value := citanje.Citaj(key, engine.mems, engine.cache)
+				if b {
+					fmt.Println("Nasao je kljuc, vrednost je:", value)
+				}
+			} else {
+
+			}
 			break
 		case "3":
 			key := nabavi_vrednosti_brisanje()

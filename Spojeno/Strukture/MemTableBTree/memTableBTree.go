@@ -23,8 +23,11 @@ func KreirajMemTable(max, velicina int) *MemTable {
 }
 func (memTable *MemTable) NadjiElement(kljuc string) (bool, []byte) {
 	b, cvor := memTable.elementi.FindElement(kljuc)
-	value := cvor.GetValue()
-	return b, value
+	if cvor != nil {
+		value := cvor.GetValue()
+		return b, value
+	}
+	return false, nil
 }
 
 func (memTable *MemTable) Add(key string, value []byte) {

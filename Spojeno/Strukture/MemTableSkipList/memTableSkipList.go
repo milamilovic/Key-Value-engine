@@ -15,8 +15,11 @@ type MemTable struct {
 
 func (memTable *MemTable) NadjiElement(kljuc string) (bool, []byte) {
 	b, cvor := memTable.elementi.NadjiElement(kljuc)
-	value := cvor.GetValue()
-	return b, value
+	if cvor != nil {
+		value := cvor.GetValue()
+		return b, value
+	}
+	return false, nil
 }
 func KreirajMemTable(max, velicina int) *MemTable {
 	elementi := SkipList.NapraviSkipList(velicina)
@@ -73,7 +76,6 @@ var i int = 0
 
 func (memTable *MemTable) Flush() {
 	memTable.NapraviSSTable(i)
-	memTable = KreirajMemTable(10, 10) //pre ovoga treba upisati na disk, SStable
 }
 
 func (memTable *MemTable) NapraviSSTable(i int) {
