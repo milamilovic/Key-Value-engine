@@ -21,7 +21,7 @@ type Engine struct {
 	cache         *Cache.Cache
 	wal           *Wal.Wal
 	konfiguracije map[string]int
-	cms *CountMinSketch.CountMinSketch
+	cms           *CountMinSketch.CountMinSketch
 }
 
 func default_konfig(engine *Engine) {
@@ -84,10 +84,7 @@ func main() {
 	addHll("6")
 	makeSimHash()
 }
-<<<<<<< HEAD
-=======
-	
->>>>>>> 50de1c4bc0ca2baad3a91be4326e16d278bbb062
+
 func odabirMemTable() string {
 	fmt.Println("Unesite da li za MemTable hocete da koristite Btree ili SkipList")
 	fmt.Println("1:SkipList")
@@ -106,10 +103,6 @@ func odabirMemTable() string {
 	return unos
 
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> 50de1c4bc0ca2baad3a91be4326e16d278bbb062
 func menu() {
 	b := true
 	for b == true {
@@ -169,7 +162,7 @@ func makeCms(engine *Engine) {
 
 func addCms(key string, value []byte, engine *Engine) {
 	uspesno := engine.cms.Add(key, engine.cms.Hashes, int(engine.cms.M))
-	if uspesno{
+	if uspesno {
 		fmt.Println("Element je uspesno dodat!")
 	}
 }
@@ -187,8 +180,8 @@ func estimateHll() {
 }
 
 func makeHll() {
-	hll:=HyperLogLog.MakeHyperLogLog(HyperLogLog.HLL_MAX_PRECISION)
-	podaci:=HyperLogLog.Serijalizacija(&hll)
+	hll := HyperLogLog.MakeHyperLogLog(HyperLogLog.HLL_MAX_PRECISION)
+	podaci := HyperLogLog.Serijalizacija(&hll)
 	file, _ := os.OpenFile("Strukture\\HyperLogLog\\hll.bin", os.O_RDWR, 0666)
 	file.Seek(0, 0)
 	file.Write(podaci)
