@@ -50,16 +50,19 @@ func (memTable *MemTable) Update(key string, value []byte) {
 		}
 	}
 }
-func (memTable *MemTable) BrisiElement(key string) {
+func (memTable *MemTable) BrisiElement(key string) bool {
 	b, cvor := memTable.elementi.FindElement(key)
 	if b == true { //nasao je elemnt i menja mu value
 		memTable.elementi.LogDel(key)
 		fmt.Println("Izbrisali smo element u skip listi")
+		return true
 	} else {
 		if cvor != nil { //cvor je logicki obrisan
 			fmt.Println("Element je vec logicki obrisan")
+			return false
 		} else {
 			fmt.Println("Nema element sa unetim kljucem")
+			return false
 		}
 	}
 }
