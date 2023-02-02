@@ -21,6 +21,7 @@ type Engine struct {
 	cache         *Cache.Cache
 	wal           *Wal.Wal
 	konfiguracije map[string]int
+	cms *CountMinSketch.CountMinSketch
 }
 
 func default_konfig(engine *Engine) {
@@ -43,7 +44,7 @@ func SplitLines(s string) []string {
 	}
 	return lines
 }
-func initialize() *Engine {
+func initialize(odabran string) *Engine {
 	engine := Engine{}
 	engine.konfiguracije = make(map[string]int)
 	file, err := os.ReadFile("Data/Konfiguracije/konfiguracije.txt")
@@ -71,15 +72,38 @@ func initialize() *Engine {
 }
 
 func main() {
-	engine := initialize()
+	odabran := odabirMemTable()
+	engine := initialize(odabran)
 	fmt.Println()
 	fmt.Println()
 	fmt.Println(engine)
 	menu()
-	makeCms()
+	makeCms(engine)
 	makeHll()
+	addCms("4", []byte("caoooo"), engine)
+	addHll("6")
 	makeSimHash()
 }
+	
+func odabirMemTable() string {
+	fmt.Println("Unesite da li za MemTable hocete da koristite Btree ili SkipList")
+	fmt.Println("1:SkipList")
+	fmt.Println("2:Btree")
+	r := bufio.NewReader(os.Stdin)
+	unos, _ := r.ReadString('\n')
+	unos = strings.Replace(unos, "\n", "", 1)
+	unos = strings.Replace(unos, "\r", "", 1)
+	for unos != "1" && unos != "2" {
+		fmt.Println("Pogresan unos!")
+		r := bufio.NewReader(os.Stdin)
+		unos, _ := r.ReadString('\n')
+		unos = strings.Replace(unos, "\n", "", 1)
+		unos = strings.Replace(unos, "\r", "", 1)
+	}
+	return unos
+
+}
+
 func menu() {
 	b := true
 	for b == true {
@@ -133,12 +157,34 @@ func makeSimHash() {
 	fmt.Println(SimHash.Hamming(sim1, sim2))
 }
 
-func makeCms() {
-	cms := CountMinSketch.CreateCMS(0.1, 0.1)
-	fmt.Println(cms)
+func makeCms(engine *Engine) {
+	engine.cms = CountMinSketch.CreateCMS(0.1, 0.1)
+}
+
+func addCms(key string, value []byte, engine *Engine) {
+	uspesno := engine.cms.Add(key, engine.cms.Hashes, int(engine.cms.M))
+	if uspesno{
+		fmt.Println("Element je uspesno dodat!")
+	}
+}
+
+func addHll(key string) {
+	file, _ := os.ReadFile("Strukture/HyperLogLog/hll.bin")
+	hll := HyperLogLog.Deserijalizacija(file)
+	hll.Add(key)
+}
+
+func estimateHll() {
+	file, _ := os.ReadFile("Strukture\\HyperLogLog\\hll.bin")
+	hll := HyperLogLog.Deserijalizacija(file)
+	hll.Estimate()
 }
 
 func makeHll() {
-	hll := HyperLogLog.MakeHyperLogLog(8)
-	fmt.Println(hll)
+	hll:=HyperLogLog.MakeHyperLogLog(HyperLogLog.HLL_MAX_PRECISION)
+	podaci:=HyperLogLog.Serijalizacija(&hll)
+	file, _ := os.OpenFile("Strukture\\HyperLogLog\\hll.bin", os.O_RDWR, 0666)
+	file.Seek(0, 0)
+	file.Write(podaci)
+	file.Close()
 }
