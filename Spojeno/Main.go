@@ -10,9 +10,10 @@ import (
 	"Strukture/HyperLogLog"
 	"Strukture/MemTableBTree"
 	"Strukture/MemTableSkipList"
+	"Strukture/SSTable"
 	"Strukture/SimHash"
-	"Strukture/Wal"
 	"Strukture/TokenBucket"
+	"Strukture/Wal"
 	"bufio"
 	"fmt"
 	"os"
@@ -206,7 +207,20 @@ func menu(engine *Engine) {
 			}
 			break
 		case "4":
-			//list()
+			path1, _ := filepath.Abs("../Spojeno/Data/SSTableData")
+			path := strings.ReplaceAll(path1, `\`, "/")
+			//fmt.Println(path)
+			_, _, _, summary_files, _ := citanje.Svi_fajlovi(path)
+			for i := range summary_files {
+				//fmt.Println(summary_files)
+				sumFile, err := os.OpenFile(path+"/"+summary_files[i], os.O_RDONLY, 0666)
+				//fmt.Println(sumFile)
+				//fmt.Println(path + "/" + summary_files[i])
+				if err != nil {
+					panic(err)
+				}
+				fmt.Println(SSTable.Svi_kljucevi_jednog_fajla(sumFile))
+			}
 			break
 		case "5":
 			//rangeScan()

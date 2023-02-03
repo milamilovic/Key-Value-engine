@@ -4,6 +4,7 @@ import (
 	"Strukture/MerkleTree"
 	"Strukture/SkipList"
 	"encoding/binary"
+	"fmt"
 	"hash/crc32"
 	"io"
 	"os"
@@ -39,6 +40,7 @@ func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 	stringovi := []string{}
 	var offsetDat uint64 = 0
 	var offsetInd uint64 = 0
+	offset_sum := make([]byte, 8)
 
 	first := make([]byte, 8)
 	first_u := uint64(len(lCvor[0].GetKey()))
@@ -93,13 +95,16 @@ func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 		offsetDat = offsetDat + size
 		ind_offset := 16 + key_u
 
-		offset_sum := make([]byte, 8)
+		//offset_sum := make([]byte, 8)
 		binary.LittleEndian.PutUint64(offset_sum, offsetInd)
 		sumFile.Write(keySize)
 		sumFile.Write([]byte(cvor.GetKey()))
-		sumFile.Write(offset_sum)
+		//sumFile.Write(offset_sum)
 		offsetInd = offsetInd + ind_offset
 	}
+	offsetttt := make([]byte, 8)
+	binary.LittleEndian.PutUint64(offsetttt, offsetInd)
+	sumFile.Write(offsetttt)
 	podaciZaMerkle := MerkleTree.Pretvori_u_bajtove(stringovi)
 	MerkleTree.Kreiraj_MerkleTree(podaciZaMerkle, path+"/SSTableData/MerkleL"+strconv.Itoa(level)+"Id"+strconv.Itoa(index)+".txt")
 
@@ -433,6 +438,42 @@ func GetData(f *os.File) (uint32, uint64, []byte, uint64, uint64, string, []byte
 	f.Read(val)
 
 	return crc, time, tomb, keySize, valueSize, key_s, val, false
+
+}
+
+func Svi_kljucevi_jednog_fajla(f *os.File) []string {
+	size := make([]byte, 8)
+	f.Read(size)
+	keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
+	key_read := make([]byte, keySize)
+	f.Read(key_read)
+	//key1 := string(key_read) //prvi kljuc
+	size = make([]byte, 8)
+	f.Read(size)
+	keySize = binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
+	key_read = make([]byte, keySize)
+	f.Read(key_read)
+	//key2 := string(key_read) //poslednji kljuc
+	var kljucevi []string
+	for true { //citamo kljuceve redom
+		size := make([]byte, 8)
+		_, err := f.Read(size)
+
+		if err != nil {
+			break
+		}
+		keySize := binary.LittleEndian.Uint64(size)
+		fmt.Println(keySize)
+		key_read := make([]byte, keySize)
+		_, err = f.Read(key_read)
+		fmt.Println(key_read)
+		if err != nil {
+			break
+		}
+		key := string(key_read)
+		kljucevi = append(kljucevi, key)
+	}
+	return kljucevi
 
 }
 
