@@ -23,21 +23,23 @@ import (
 )
 
 type Engine struct {
-	bloom         *BloomFilter.BloomFilter
-	cache         *Cache.Cache
-	wal           *Wal.Wal
-	konfiguracije map[string]int
-	cms           []string
-	cms_podaci    map[string][]byte
-	cms_pokaz     map[string]*CountMinSketch.CountMinSketch
-	hll           []string
-	hll_podaci    map[string][]byte
-	hll_pokaz     map[string]*HyperLogLog.HLL
-	mems          *MemTableSkipList.MemTable
-	memb          *MemTableBTree.MemTable
-	da_li_je_skip bool
-	token         *TokenBucket.TokenBucket
-	indexBloom    int
+	bloom           *BloomFilter.BloomFilter
+	cache           *Cache.Cache
+	wal             *Wal.Wal
+	konfiguracije   map[string]int
+	cms             []string
+	cms_podaci      map[string][]byte
+	cms_pokaz       map[string]*CountMinSketch.CountMinSketch
+	hll             []string
+	hll_podaci      map[string][]byte
+	hll_pokaz       map[string]*HyperLogLog.HLL
+	mems            *MemTableSkipList.MemTable
+	memb            *MemTableBTree.MemTable
+	da_li_je_skip   bool
+	token           *TokenBucket.TokenBucket
+	indexBloom      int
+	simHashevi      map[string]string
+	simHashKljucevi []string
 }
 
 func default_konfig(engine *Engine) {
@@ -91,6 +93,7 @@ func initialize() *Engine {
 		engine.mems = nil
 		engine.da_li_je_skip = false
 	}
+	engine.simHashevi = make(map[string]string)
 	engine.cms_podaci = make(map[string][]byte)
 	engine.cms_pokaz = make(map[string]*CountMinSketch.CountMinSketch)
 	engine.hll_podaci = make(map[string][]byte)
@@ -104,9 +107,6 @@ func initialize() *Engine {
 }
 
 func main() {
-	sim1:=SimHash.SimHash("vau sdhfla sdkjv liauhsfjxc")
-	sim2:=SimHash.SimHash("lkashfdklsdvb lkadfjhlksdjzc hkfsd")
-	fmt.Println(SimHash.Hamming(sim1, sim2))
 	engine := Engine{}
 	engine = *initialize()
 	menu(&engine)
@@ -304,18 +304,13 @@ func desetPlusMeni(engine *Engine) {
 			addHll(engine)
 			break
 		case "6":
-			// if engine.hll == nil {
-			// 	fmt.Println("Morate prvo napraviti hll!")
-			// 	break
-			// }
-			// key := nabavi_vrednosti_brisanje()
 			estimateHll(engine)
 			break
 		case "7":
-			makeSimHash()
+			makeSimHash(engine)
 			break
 		case "8":
-			SimHashDistance()
+			SimHashDistance(engine)
 			break
 		case "x":
 			b = false
@@ -326,20 +321,44 @@ func desetPlusMeni(engine *Engine) {
 	}
 }
 
-func makeSimHash() {
-	SimHash.SimHash("vau sdhfla sdkjv liauhsfjxc")
-	// fmt.Println("fingerprint prvog teksta: ")
-	// sim1 := SimHash.SimHash("Strukture\\SimHash\\simHash.txt")
-	// fmt.Println(sim1)
-	// fmt.Println("fingerprint drugog teksta: ")
-	// sim2 := SimHash.SimHash("Strukture\\SimHash\\simHash2.txt")
-	// fmt.Println(sim2)
-	// fmt.Println("Hemingova razdaljina ova dva teksta: ")
-	// fmt.Println(SimHash.Hamming(sim1, sim2))
+func makeSimHash(engine *Engine) {
+	key := nabavi_vrednosti_brisanje()
+	fmt.Println("Unesite tekst: ")
+	r := bufio.NewReader(os.Stdin)
+	tekst, _ := r.ReadString('\n')
+	tekst = strings.Replace(tekst, "\n", "", 1)
+	tekst = strings.Replace(tekst, "\r", "", 1)
+	vrednost := SimHash.SimHash(tekst)
+	engine.simHashevi[key] = vrednost
+	engine.simHashKljucevi = append(engine.simHashKljucevi, key)
 }
 
-func SimHashDistance() {
-
+func SimHashDistance(engine *Engine) {
+	fmt.Println("Prvi sim hash:")
+	kljuc1 := nabavi_vrednosti_brisanje()
+	postoji := false
+	for i := 0; i < len(engine.simHashKljucevi); i++ {
+		if kljuc1 == engine.simHashKljucevi[i] {
+			postoji = true
+		}
+	}
+	if !postoji {
+		fmt.Println("Sim hash pod datim kljucem ne postoji")
+		return
+	}
+	fmt.Println("Drugi sim hash:")
+	kljuc2 := nabavi_vrednosti_brisanje()
+	postoji2 := false
+	for i := 0; i < len(engine.simHashKljucevi); i++ {
+		if kljuc2 == engine.simHashKljucevi[i] {
+			postoji2 = true
+		}
+	}
+	if !postoji2 {
+		fmt.Println("Sim hash pod datim kljucem ne postoji")
+		return
+	}
+	fmt.Println(SimHash.Hamming(engine.simHashevi[kljuc1], engine.simHashevi[kljuc2]))
 }
 
 func makeCms(engine *Engine) {
