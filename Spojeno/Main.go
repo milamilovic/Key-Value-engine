@@ -196,10 +196,10 @@ func menu(engine *Engine) {
 					fmt.Println("Nasao je kljuc, vrednost je:", value)
 				}
 			} else {
-				// b, value := citanje.CitajBTree(key, engine.memb, engine.cache)
-				// if b {
-				// 	fmt.Println("Nasao je kljuc, vrednost je:", value)
-				// }
+				b, value := citanje.CitajBTree(key, engine.memb, engine.cache)
+				if b {
+					fmt.Println("Nasao je kljuc, vrednost je:", value)
+				}
 
 			}
 			break
