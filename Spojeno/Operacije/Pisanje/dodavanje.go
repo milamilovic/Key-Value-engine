@@ -9,7 +9,7 @@ import (
 )
 
 func Dodaj_skiplist(key string, value []byte, mt *MemTableSkipList.MemTable, w *Wal.Wal, t *TokenBucket.TokenBucket) {
-	if t.Check(t.Key) {
+	if t.Check(t.Kljuc) {
 		w.Dodaj_u_wal(key, value, false) // tombstone je false kada dodajemo
 		mt.Add(key, value)
 	} else {
@@ -23,7 +23,7 @@ func Dodaj_skiplist(key string, value []byte, mt *MemTableSkipList.MemTable, w *
 }
 
 func Dodaj_bstablo(key string, value []byte, mt *MemTableBTree.MemTable, w *Wal.Wal, t *TokenBucket.TokenBucket) {
-	if t.Check(t.Key) {
+	if t.Check(t.Kljuc) {
 		w.Dodaj_u_wal(key, value, false) // tombstone je false kada dodajemo
 		mt.Add(key, value)
 	} else {

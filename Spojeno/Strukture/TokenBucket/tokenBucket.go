@@ -20,19 +20,19 @@ import (
 // }
 
 type TokenBucket struct {
-	kljuc               int //podrazumevamo da imamo jednog korisnika
+	Kljuc               int //podrazumevamo da imamo jednog korisnika
 	broj_tokena         int
 	max_tokena          int
 	poslednji_timestamp int64
 	interval            int64 //sekunde
 }
 
-func newTokenBucket(key int, maxtok int, interv int64) *TokenBucket {
+func NewTokenBucket(key int, maxtok int, interv int64) *TokenBucket {
 	return &TokenBucket{key, maxtok, maxtok, time.Now().Unix(), interv}
 }
 
 func (tokenBucket *TokenBucket) Check(kljuc int) bool {
-	if kljuc != tokenBucket.kljuc {
+	if kljuc != tokenBucket.Kljuc {
 		return false
 	}
 	//ako je interval istekao resetujemo

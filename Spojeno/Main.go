@@ -7,10 +7,12 @@ import (
 	"Strukture/BloomFilter"
 	"Strukture/Cache"
 	"Strukture/CountMinSketch"
+	"Strukture/HyperLogLog"
 	"Strukture/MemTableBTree"
 	"Strukture/MemTableSkipList"
 	"Strukture/SimHash"
 	"Strukture/Wal"
+	"Strukture/TokenBucket"
 	"bufio"
 	"fmt"
 	"os"
@@ -27,10 +29,13 @@ type Engine struct {
 	cms           []string
 	cms_podaci    map[string][]byte
 	cms_pokaz     map[string]*CountMinSketch.CountMinSketch
-	hll_fajlovi   map[string]string
+	hll           []string
+	hll_podaci    map[string][]byte
+	hll_pokaz     map[string]*HyperLogLog.HLL
 	mems          *MemTableSkipList.MemTable
 	memb          *MemTableBTree.MemTable
 	da_li_je_skip bool
+	token         *TokenBucket.TokenBucket
 }
 
 func default_konfig(engine *Engine) {
@@ -86,10 +91,12 @@ func initialize() *Engine {
 	}
 	engine.cms_podaci = make(map[string][]byte)
 	engine.cms_pokaz = make(map[string]*CountMinSketch.CountMinSketch)
-	engine.hll_fajlovi = make(map[string]string)
+	engine.hll_podaci = make(map[string][]byte)
+	engine.hll_pokaz = make(map[string]*HyperLogLog.HLL)
 	engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1))
 	engine.cache = Cache.KreirajCache(engine.konfiguracije["cache_size"])
 	engine.wal = Wal.NapraviWal("Data\\Wal", engine.konfiguracije["wal_low_water_mark"])
+	engine.token = TokenBucket.NewTokenBucket(engine.konfiguracije["token_key"], engine.konfiguracije["token_maxtok"], int64(engine.konfiguracije["token_interval"]))
 	return &engine
 }
 
@@ -160,14 +167,14 @@ func menu(engine *Engine) {
 		case "1":
 			key, value := nabavi_vrednosti_dodavanje()
 			if engine.da_li_je_skip {
-				dodavanje.Dodaj_skiplist(key, value, engine.mems, engine.wal)
+				dodavanje.Dodaj_skiplist(key, value, engine.mems, engine.wal, engine.token)
 				if engine.mems.ProveriFlush() {
 					engine.mems.Flush()
 					engine.mems = MemTableSkipList.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
 
 				}
 			} else {
-				dodavanje.Dodaj_bstablo(key, value, engine.memb, engine.wal)
+				dodavanje.Dodaj_bstablo(key, value, engine.memb, engine.wal, engine.token)
 				if engine.memb.ProveriFlush() {
 					engine.memb.Flush()
 					engine.memb = MemTableBTree.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
@@ -227,7 +234,7 @@ func desetPlusMeni(engine *Engine) {
 		fmt.Println("3:PROVERI CMS")
 		fmt.Println("4:NAPRAVI HLL")
 		fmt.Println("5:DODAJ U HLL")
-		fmt.Println("6:CITAJ IZ HLL")
+		fmt.Println("6:PROCENA IZ HLL")
 		fmt.Println("7:SIM HASH DEMONSTRACIJA")
 		fmt.Println("x:povratak na obican meni")
 		fmt.Println("Unesite broj ispred zeljene opcije")
@@ -254,12 +261,11 @@ func desetPlusMeni(engine *Engine) {
 			makeHll(engine)
 			break
 		case "5":
-			// if engine.hll == nil {
-			// 	fmt.Println("Morate prvo napraviti hll!")
-			// 	break
-			// }
-			key := nabavi_vrednosti_brisanje()
-			addHll(key, engine)
+			if engine.hll == nil {
+				fmt.Println("Morate prvo napraviti hll!")
+				break
+			}
+			addHll(engine)
 			break
 		case "6":
 			// if engine.hll == nil {
@@ -267,7 +273,7 @@ func desetPlusMeni(engine *Engine) {
 			// 	break
 			// }
 			// key := nabavi_vrednosti_brisanje()
-			saveHll(engine)
+			estimateHll(engine)
 			break
 		case "7":
 			makeSimHash()
@@ -323,7 +329,7 @@ func addCms(engine *Engine) {
 		bajtovi = append(bajtovi, engine.cms_podaci[kljucic]...)
 	}
 
-	//NE RADI UPIS U FAJL!!!!!!!!!!!!!!!
+	//NE RADI UPIS U FAJL NA NEKIM LAPTOPOVIMA!!!!!!!!!!!!!!!
 
 	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
@@ -352,22 +358,59 @@ func checkCms(engine *Engine) int {
 	return CountMinSketch.Cms(key, engine.cms_pokaz[kljuc_cms].Hashes, int(engine.cms_pokaz[kljuc_cms].M), engine.cms_podaci[kljuc_cms])
 }
 
-func addHll(key string, engine *Engine) {
-	//engine.hll.Add(key)
-	fmt.Println("Element je uspesno dodat u hll!")
-}
+func addHll(engine *Engine) {
+	kljuc_hll := nabavi_vrednosti_brisanje()
+	postoji := false
+	for i := 0; i < len(engine.hll); i++ {
+		if kljuc_hll == engine.hll[i] {
+			postoji = true
+		}
+	}
+	if !postoji {
+		fmt.Println("HLL pod datim kljucem ne postoji")
+		return
+	}
+	key := nabavi_vrednosti_brisanje()
+	podaci := HyperLogLog.Add(key, engine.hll_pokaz[kljuc_hll].Reg, engine.hll_pokaz[kljuc_hll].P)
+	engine.hll_podaci[kljuc_hll] = podaci
+	engine.hll_pokaz[kljuc_hll].Reg = podaci
+	bajtovi := make([]byte, 0)
+	for i := 0; i < len(engine.hll); i++ {
+		kljucic := engine.hll[i]
+		bajtovi = append(bajtovi, engine.hll_podaci[kljucic]...)
+	}
 
-func saveHll(engine *Engine) {
-	//podaci := HyperLogLog.Serijalizacija(engine.hll)
-	//os.WriteFile("Spojeno\\Strukture\\HyperLogLog\\hll.bin", podaci, os.FileMode(os.O_RDWR))
+	//NE RADI UPIS U FAJL NA NEKIM LAPTOPOVIMA!!!!!!!!!!!!!!!
+
+	path1, _ := filepath.Abs("../Spojeno/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	file_hll, errData := os.OpenFile(path+"/hll.txt", os.O_CREATE|os.O_WRONLY, 0777)
+	if errData != nil {
+		panic(errData)
+	}
+	file_hll.Write(bajtovi)
+	fmt.Println("Element je uspesno dodat u hll!")
 }
 
 func estimateHll(engine *Engine) {
 	fmt.Println("Procena broja elemenata u hll: ")
-	//fmt.Println(engine.hll.Estimate())
+	kljuc_hll := nabavi_vrednosti_brisanje()
+	postoji := false
+	for i := 0; i < len(engine.hll); i++ {
+		if kljuc_hll == engine.hll[i] {
+			postoji = true
+		}
+	}
+	if !postoji {
+		fmt.Println("HLL pod datim kljucem ne postoji")
+	}
+	fmt.Println(engine.hll_pokaz[kljuc_hll].Estimate())
 }
 
 func makeHll(engine *Engine) {
-	//hll := HyperLogLog.MakeHyperLogLog(HyperLogLog.HLL_MAX_PRECISION)
-	//engine.hll = hll
+	kljuc := nabavi_vrednosti_brisanje()
+	hll := HyperLogLog.MakeHyperLogLog(HyperLogLog.HLL_MAX_PRECISION)
+	engine.hll_pokaz[kljuc] = hll
+	engine.cms_podaci[kljuc] = hll.Reg
+	engine.hll = append(engine.hll, kljuc)
 }

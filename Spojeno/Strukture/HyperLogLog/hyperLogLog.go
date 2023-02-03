@@ -27,22 +27,22 @@ const (
 
 func MakeHyperLogLog(preciznost int) *HLL {
 	var m = uint64(math.Pow(2, float64(preciznost)))
-	hll := HLL{m: m, p: uint8(preciznost), reg: make([]uint8, m)}
+	hll := HLL{m: m, P: uint8(preciznost), Reg: make([]uint8, m)}
 	return &hll
 }
 
 type HLL struct {
 	m   uint64
-	p   uint8
-	reg []uint8
+	P   uint8
+	Reg []uint8
 }
 
-func (hyper *HLL) Add(key string) bool {
+func Add(key string, registri []uint8, p uint8) []uint8 {
 	//hesiran kljuc je string od binarnog broja
-	hesiran_kljuc := hyper.Hesiraj(key)
-	baket, err := strconv.ParseInt(hesiran_kljuc[0:hyper.p], 2, 0)
+	hesiran_kljuc := Hesiraj(key)
+	baket, _ := strconv.ParseInt(hesiran_kljuc[0:p], 2, 0)
 	broj_vodecih_nula := 0
-	for i := 0; i < len(hesiran_kljuc)-int(hyper.p); i++ {
+	for i := 0; i < len(hesiran_kljuc)-int(p); i++ {
 		if hesiran_kljuc[len(hesiran_kljuc)-1-i] == 48 {
 			broj_vodecih_nula++
 		} else {
@@ -50,16 +50,13 @@ func (hyper *HLL) Add(key string) bool {
 		}
 	}
 	//fmt.Println(broj_vodecih_nula)
-	if hyper.reg[baket] < uint8(broj_vodecih_nula) {
-		hyper.reg[baket] = uint8(broj_vodecih_nula)
+	if registri[baket] < uint8(broj_vodecih_nula) {
+		registri[baket] = uint8(broj_vodecih_nula)
 	}
-	if err == nil {
-		return true
-	}
-	return false
+	return registri
 }
 
-func (hyper *HLL) Hesiraj(kljuc string) string {
+func Hesiraj(kljuc string) string {
 	var vrednost = 0
 	chars := []rune(kljuc)
 	for i := 0; i < len(chars); i++ {
@@ -83,7 +80,7 @@ func (hyper *HLL) Hesiraj(kljuc string) string {
 // procenjuje koliko ima elemenata u hll-u
 func (hll *HLL) Estimate() float64 {
 	sum := 0.0
-	for _, val := range hll.reg {
+	for _, val := range hll.Reg {
 		sum += math.Pow(math.Pow(2.0, float64(val)), -1)
 	}
 
@@ -103,7 +100,7 @@ func (hll *HLL) Estimate() float64 {
 // procenjuje koliko ima praznih baketa
 func (hll *HLL) EmptyCount() int {
 	sum := 0
-	for _, val := range hll.reg {
+	for _, val := range hll.Reg {
 		if val == 0 {
 			sum++
 		}
