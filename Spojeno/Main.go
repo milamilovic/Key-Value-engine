@@ -104,6 +104,9 @@ func initialize() *Engine {
 }
 
 func main() {
+	sim1:=SimHash.SimHash("vau sdhfla sdkjv liauhsfjxc")
+	sim2:=SimHash.SimHash("lkashfdklsdvb lkadfjhlksdjzc hkfsd")
+	fmt.Println(SimHash.Hamming(sim1, sim2))
 	engine := Engine{}
 	engine = *initialize()
 	menu(&engine)
@@ -267,7 +270,8 @@ func desetPlusMeni(engine *Engine) {
 		fmt.Println("4:NAPRAVI HLL")
 		fmt.Println("5:DODAJ U HLL")
 		fmt.Println("6:PROCENA IZ HLL")
-		fmt.Println("7:SIM HASH DEMONSTRACIJA")
+		fmt.Println("7:NAPRAVI SIM HASH")
+		fmt.Println("8:UPOREDI DVA SIM HASH")
 		fmt.Println("x:povratak na obican meni")
 		fmt.Println("Unesite broj ispred zeljene opcije")
 		r := bufio.NewReader(os.Stdin)
@@ -310,6 +314,9 @@ func desetPlusMeni(engine *Engine) {
 		case "7":
 			makeSimHash()
 			break
+		case "8":
+			SimHashDistance()
+			break
 		case "x":
 			b = false
 			break
@@ -320,14 +327,19 @@ func desetPlusMeni(engine *Engine) {
 }
 
 func makeSimHash() {
-	fmt.Println("fingerprint prvog teksta: ")
-	sim1 := SimHash.SimHash("Strukture\\SimHash\\simHash.txt")
-	fmt.Println(sim1)
-	fmt.Println("fingerprint drugog teksta: ")
-	sim2 := SimHash.SimHash("Strukture\\SimHash\\simHash2.txt")
-	fmt.Println(sim2)
-	fmt.Println("Hemingova razdaljina ova dva teksta: ")
-	fmt.Println(SimHash.Hamming(sim1, sim2))
+	SimHash.SimHash("vau sdhfla sdkjv liauhsfjxc")
+	// fmt.Println("fingerprint prvog teksta: ")
+	// sim1 := SimHash.SimHash("Strukture\\SimHash\\simHash.txt")
+	// fmt.Println(sim1)
+	// fmt.Println("fingerprint drugog teksta: ")
+	// sim2 := SimHash.SimHash("Strukture\\SimHash\\simHash2.txt")
+	// fmt.Println(sim2)
+	// fmt.Println("Hemingova razdaljina ova dva teksta: ")
+	// fmt.Println(SimHash.Hamming(sim1, sim2))
+}
+
+func SimHashDistance() {
+
 }
 
 func makeCms(engine *Engine) {

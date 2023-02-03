@@ -5,7 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"os"
+	"strings"
 )
 
 // func main() {
@@ -16,13 +16,11 @@ import (
 // 	fmt.Println(hamming(str1, str2))
 // }
 
-func SimHash(ime_fajla string) string {
-	file, _ := os.OpenFile(ime_fajla, os.O_RDONLY, 0666)
+func SimHash(tekst string) string {
 	var reci []string
-	Scanner := bufio.NewScanner(file)
-	Scanner.Split(bufio.ScanWords)
-	for Scanner.Scan() {
-		reci = append(reci, Scanner.Text())
+	sc := bufio.NewScanner(strings.NewReader(tekst))
+	for sc.Scan() {
+		reci = append(reci, sc.Text())
 	}
 	mapa := make(map[string]int, len(reci))
 	for i := 0; i < len(reci); i++ {
