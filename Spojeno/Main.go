@@ -215,17 +215,30 @@ func menu(engine *Engine) {
 			path1, _ := filepath.Abs("../Spojeno/Data/SSTableData")
 			path := strings.ReplaceAll(path1, `\`, "/")
 			//fmt.Println(path)
-			_, _, _, summary_files, _ := citanje.Svi_fajlovi(path)
-			for i := range summary_files {
+			_, _, index_files, _, _ := citanje.Svi_fajlovi(path)
+			var kljucevi []string
+			for i := range index_files {
 				//fmt.Println(summary_files)
-				sumFile, err := os.OpenFile(path+"/"+summary_files[i], os.O_RDONLY, 0666)
+				indFile, err := os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
 				//fmt.Println(sumFile)
 				//fmt.Println(path + "/" + summary_files[i])
 				if err != nil {
 					panic(err)
 				}
-				fmt.Println(SSTable.Svi_kljucevi_jednog_fajla(sumFile))
+				kljucevi = append(kljucevi, SSTable.Svi_kljucevi_jednog_fajla(indFile)...)
 			}
+			if engine.da_li_je_skip {
+				for i := range engine.mems.Elementi.GetElements() {
+					if engine.mems.Elementi.GetElements()[i] != nil {
+						kljucevi = append(kljucevi, engine.mems.Elementi.GetElements()[i].GetKey())
+					}
+				}
+			} else {
+				for _, elem := range MemTableBTree.Niz {
+					kljucevi = append(kljucevi, elem.GetKey())
+				}
+			}
+			fmt.Println(kljucevi)
 			break
 		case "5":
 			//rangeScan()

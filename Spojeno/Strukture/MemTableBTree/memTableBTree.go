@@ -7,11 +7,11 @@ import (
 	"fmt"
 )
 
-var niz []*BTree.Node
+var Niz []*BTree.Node
 var nizSize int
 
 type MemTable struct {
-	elementi         *BTree.Btree
+	Elementi         *BTree.Btree
 	velicina         int //velicina skipListe
 	maxVelicina      int //maksimalna velicina za memTable
 	trenutnaVelicina int
@@ -22,7 +22,7 @@ func KreirajMemTable(max, velicina int) *MemTable {
 	return &MemTable{elementi, velicina, max, 0}
 }
 func (memTable *MemTable) NadjiElement(kljuc string) (bool, []byte) {
-	b, cvor := memTable.elementi.FindElement(kljuc)
+	b, cvor := memTable.Elementi.FindElement(kljuc)
 	if cvor != nil {
 		value := cvor.GetValue()
 		return b, value
@@ -31,32 +31,32 @@ func (memTable *MemTable) NadjiElement(kljuc string) (bool, []byte) {
 }
 
 func (memTable *MemTable) Add(key string, value []byte) {
-	b, cvor := memTable.elementi.FindElement(key)
+	b, cvor := memTable.Elementi.FindElement(key)
 	if b == false {
 		if cvor == nil {
-			niz = append(niz, BTree.MakeNode(key, value, false))
+			Niz = append(Niz, BTree.MakeNode(key, value, false))
 			nizSize++
-			memTable.elementi.Add(key, value)
+			memTable.Elementi.Add(key, value)
 			fmt.Println("Ubacili smo novi element u skip listu")
 			memTable.trenutnaVelicina++
 		}
 	}
 }
 func (memTable *MemTable) Update(key string, value []byte) {
-	b, cvor := memTable.elementi.FindElement(key)
+	b, cvor := memTable.Elementi.FindElement(key)
 	if b == true { //nasao je elemnt i menja mu value
-		memTable.elementi.Add(key, value)
+		memTable.Elementi.Add(key, value)
 		fmt.Println("Izmenili smo element u skip listi")
 	} else {
 		if cvor != nil { //cvor je logicki obrisan
-			memTable.elementi.Add(key, value) //izmenice mu i tombstone na false
+			memTable.Elementi.Add(key, value) //izmenice mu i tombstone na false
 		}
 	}
 }
 func (memTable *MemTable) BrisiElement(key string) bool {
-	b, cvor := memTable.elementi.FindElement(key)
+	b, cvor := memTable.Elementi.FindElement(key)
 	if b == true { //nasao je elemnt i menja mu value
-		memTable.elementi.LogDel(key)
+		memTable.Elementi.LogDel(key)
 		fmt.Println("Izbrisali smo element u skip listi")
 		return true
 	} else {
@@ -87,7 +87,7 @@ func (memTable *MemTable) Flush() {
 
 func (memTable *MemTable) NapraviSSTable(i int) {
 	sl := SkipList.NapraviSkipList(nizSize)
-	for _, elem := range niz {
+	for _, elem := range Niz {
 		sl.Add(elem.GetKey(), elem.GetValue())
 	}
 	i++
