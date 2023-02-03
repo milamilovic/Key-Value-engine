@@ -401,37 +401,23 @@ func GetData(f *os.File) (uint32, uint64, []byte, uint64, uint64, string, []byte
 }
 
 func Svi_kljucevi_jednog_fajla(f *os.File) []string {
-	size := make([]byte, 8)
-	f.Read(size)
-	keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
-	key_read := make([]byte, keySize)
-	f.Read(key_read)
-	//key1 := string(key_read) //prvi kljuc
-	size = make([]byte, 8)
-	f.Read(size)
-	keySize = binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
-	key_read = make([]byte, keySize)
-	f.Read(key_read)
-	//key2 := string(key_read) //poslednji kljuc
+	f.Seek(0, 0)
 	var kljucevi []string
-	for true { //citamo kljuceve redom
+	for true {
 		size := make([]byte, 8)
 		_, err := f.Read(size)
-
 		if err != nil {
-			break
+			return kljucevi
 		}
-		keySize := binary.LittleEndian.Uint64(size)
-		fmt.Println(keySize)
+		keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
 		key_read := make([]byte, keySize)
-		_, err = f.Read(key_read)
-		fmt.Println(key_read)
-		if err != nil {
-			break
-		}
+		f.Read(key_read)
 		key := string(key_read)
+		fmt.Println(key)
 		kljucevi = append(kljucevi, key)
+		of := make([]byte, 8)
+		f.Read(of)
+
 	}
 	return kljucevi
-
 }
