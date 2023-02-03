@@ -1,8 +1,8 @@
 package citanje
 
 import (
-	"Spojeno/Strukture/MemTableBTree"
 	"Strukture/Cache"
+	"Strukture/MemTableBTree"
 	"Strukture/MemTableSkipList"
 	"Strukture/SSTable"
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func CitajSKip(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.Cache) (bool, []byte) {
+func CitajSkip(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.Cache) (bool, []byte) {
 	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	data_files, _, index_files, summary_files, _ := Svi_fajlovi(path)
