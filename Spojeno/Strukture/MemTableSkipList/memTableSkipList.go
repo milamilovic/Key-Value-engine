@@ -75,10 +75,10 @@ func (memTable *MemTable) ProveriFlush() bool {
 var i int = 0
 
 func (memTable *MemTable) Flush() {
+	i++
 	memTable.NapraviSSTable(i)
 }
 
 func (memTable *MemTable) NapraviSSTable(i int) {
-	i++
 	SSTable.NapraviSSTable(memTable.elementi.GetElements(), 1, i)
 }
