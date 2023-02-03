@@ -198,9 +198,11 @@ func Kompakcija(brojFajlova int, maxLevel int, level int, listLen int) {
 	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	br := 0
-
 	for br < brojFajlova {
-		bloom := BloomFilter.New_bloom(listLen, 0.05, level, br)
+
+		bloom := BloomFilter.New_bloom(listLen, 0.05, level+1, br)
+		l := strconv.Itoa(bloom.Level)
+		i := strconv.Itoa(bloom.Index)
 		skipList := SkipList.NapraviSkipList(listLen) //velicina koja
 		br++
 		f1, err := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
@@ -230,22 +232,22 @@ func Kompakcija(brojFajlova int, maxLevel int, level int, listLen int) {
 				if tomb1[0] == tomb2[0] && tomb1[0] != 1 { //ne upisujemo ako je obrisan
 					if time1 < time2 {
 						skipList.Add(key2, val2)
-						bloom.Add(key2)
+						BloomFilter.Add(key2, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
 
 					} else if time1 > time2 {
 						skipList.Add(key1, val1)
-						bloom.Add(key1)
+						BloomFilter.Add(key1, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
 
 					} else {
 						skipList.Add(key1, val1)
-						bloom.Add(key1)
+						BloomFilter.Add(key1, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
 
 					}
 				}
 			} else if key1 > key2 {
 				if tomb2[0] != 1 {
 					skipList.Add(key2, val2)
-					bloom.Add(key2)
+					BloomFilter.Add(key2, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
 
 				}
 				f1.Seek(int64(4+8+1+8+8+key_s1+val_s1), 1)
@@ -253,7 +255,7 @@ func Kompakcija(brojFajlova int, maxLevel int, level int, listLen int) {
 			} else {
 				if tomb1[0] != 1 {
 					skipList.Add(key1, val1)
-					bloom.Add(key1)
+					BloomFilter.Add(key1, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
 
 				}
 				f2.Seek(int64(4+8+1+8+8+key_s2+val_s2), 1)

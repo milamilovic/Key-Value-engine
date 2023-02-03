@@ -17,9 +17,10 @@ func CitajSkip(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.C
 	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	data_files, filter_files, index_files, summary_files, _ := Svi_fajlovi(path)
+	fmt.Println(filter_files)
 	for _, fFajl := range filter_files {
-		filter := BloomFilter.Deserijalizacija(fFajl)
-		b := filter.Find(kljuc)
+		fmt.Println("Usao je")
+		b := BloomFilter.Find(kljuc, path+"/SSTableData/"+fFajl)
 		if b {
 			b, value := memTable.NadjiElement(kljuc)
 			if b {
@@ -188,7 +189,7 @@ func Svi_fajlovi(folder string) ([]string, []string, []string, []string, []strin
 		if strings.Contains(svi[f], "DataFileL") {
 			data_files = append(data_files, svi[f])
 		}
-		if strings.Contains(svi[f], "FilterFileL") {
+		if strings.Contains(svi[f], "filterFileL") {
 			filter_files = append(filter_files, svi[f])
 		}
 		if strings.Contains(svi[f], "IndexFileL") {
