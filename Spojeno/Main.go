@@ -14,6 +14,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -320,7 +321,15 @@ func addCms(engine *Engine) {
 
 	//NE RADI UPIS U FAJL!!!!!!!!!!!!!!!
 
-	os.WriteFile("Strukture/CountMinSketch/cms.txt", bajtovi, 0666)
+	path1, _ := filepath.Abs("../Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	file_cms, errData := os.OpenFile(path+"/cms.txt", os.O_CREATE|os.O_WRONLY, 0777)
+	if errData != nil {
+		panic(errData)
+	}
+	file_cms.Write(bajtovi)
+	// os.WriteFile("Strukture//CountMinSketch//cms.txt", bajtovi,os.O_RDWR
+	// 0777)
 }
 
 func checkCms(engine *Engine) int {
