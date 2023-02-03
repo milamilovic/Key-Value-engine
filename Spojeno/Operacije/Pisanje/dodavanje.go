@@ -15,8 +15,8 @@ func Dodaj_skiplist(key string, value []byte, mt *MemTableSkipList.MemTable, w *
 	} else {
 		fmt.Println("Neuspesno dodavanje, isteklo je vreme.")
 	}
-	w.Dodaj_u_wal(key, value, false) // tombstone je false kada dodajemo
-	mt.Add(key, value)
+	//w.Dodaj_u_wal(key, value, false) // tombstone je false kada dodajemo
+	//mt.Add(key, value)
 	// if mt.ProveriFlush() {
 	// 	mt.Flush()
 	// }
