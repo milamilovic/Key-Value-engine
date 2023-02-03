@@ -2,10 +2,12 @@ package BloomFilter
 
 import (
 	//"fmt"
+	"encoding/gob"
 	"math"
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -32,48 +34,44 @@ type BloomFilter struct {
 	false_positive_rate float64
 	Hashes              []Hash
 	bytes               []byte
+	Level               int
+	Index               int
 }
 
-func New_bloom(how_many_keys int, false_positive float64) *BloomFilter {
+func New_bloom(how_many_keys int, false_positive float64, level int, index int) *BloomFilter {
 	var m = CalculateM(how_many_keys, 0.01)
 	var k = CalculateK(how_many_keys, m)
 	hashes := Make_hashes(k, m)
-	path1, _ := filepath.Abs("../Spojeno/Strukture")
-	path := strings.ReplaceAll(path1, `\`, "/")
-	file, _ := os.OpenFile(path+"/BloomFilter/filter.txt", os.O_CREATE, 0666)
 	bytes := make([]byte, m)
-	_, _ = file.WriteAt(bytes, 0)
-	file.Close()
-	return &BloomFilter{m, k, how_many_keys, false_positive, hashes, bytes}
+	bloom := BloomFilter{m, k, how_many_keys, false_positive, hashes, bytes, level, index}
+	Serijalizacija(&bloom)
+	return &bloom
 }
 
-func (bloom *BloomFilter) Add(key string) bool {
-	path1, _ := filepath.Abs("../Spojeno/Strukture")
-	path := strings.ReplaceAll(path1, `\`, "/")
-	file, _ := os.OpenFile(path+"/BloomFilter/filter.txt", os.O_CREATE, 0666)
-	bytes := make([]byte, int(bloom.m))
-	_, err := file.Read(bytes)
-	if err != nil {
-		panic(err)
-	}
+func Add(key string, filename string) bool {
+	bloom := Deserijalizacija(filename)
+	bytes := bloom.bytes
+
 	for j := 0; j < len(bloom.Hashes); j++ {
 		bytes[bloom.Hashes[j].Hash(key, int(bloom.m))] = 1
 	}
-	_, err = file.WriteAt(bytes, 0)
-	file.Close()
-	if err != nil {
-		return false
-	} else {
-		return true
-	}
+	bloom.bytes = bytes
+	Serijalizacija(bloom)
+	return true
 }
 
-func (bloom *BloomFilter) Find(kljuc string) bool {
-	path1, _ := filepath.Abs("../Spojeno/Strukture")
-	path := strings.ReplaceAll(path1, `\`, "/")
-	file, _ := os.OpenFile(path+"/BloomFilter/filter.txt", os.O_CREATE, 0666)
+func Find(kljuc string, fajl string) bool {
+	bloom := Deserijalizacija(fajl)
+	// path1, _ := filepath.Abs("../Spojeno/Data")
+	// path := strings.ReplaceAll(path1, `\`, "/")
+	// l := strconv.Itoa(bloom.level)
+	// i := strconv.Itoa(bloom.index)
+	// fmt.Println(path + "/SSTableData/filterL" + l + "Id" + i + ".txt")
+	// file, err := os.OpenFile(path+"/SSTableData/filterFileL"+l+"Id"+i+".txt", os.O_RDONLY, 0777)
+	// if err != nil {
+	// 	panic(err)
+	// }
 	bytes := bloom.bytes
-	_, _ = file.Read(bytes)
 	for j := 0; j < len(bloom.Hashes); j++ {
 		if bytes[bloom.Hashes[j].Hash(kljuc, int(bloom.m))] == 0 {
 			return false
@@ -83,7 +81,7 @@ func (bloom *BloomFilter) Find(kljuc string) bool {
 }
 
 type Hash struct {
-	broj int
+	Broj int
 }
 
 func Make_hashes(k uint, m uint) []Hash {
@@ -100,8 +98,44 @@ func (h *Hash) Hash(kljuc string, m int) int {
 	for i := 0; i < len(chars); i++ {
 		vrednost += int(chars[i])
 	}
-	var hesirana = h.broj * vrednost
+	var hesirana = h.Broj * vrednost
 	return hesirana % m
+}
+
+func Serijalizacija(bloom *BloomFilter) {
+
+	path1, _ := filepath.Abs("../Spojeno/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	l := strconv.Itoa(bloom.Level)
+	i := strconv.Itoa(bloom.Index)
+	file, err := os.OpenFile(path+"/SSTableData/filterFileL"+l+"Id"+i+".txt", os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		panic(err)
+	}
+	encoder := gob.NewEncoder(file)
+	err = encoder.Encode(&bloom)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func Deserijalizacija(str string) *BloomFilter {
+	// path1, _ := filepath.Abs("../Spojeno/Data")
+	// path := strings.ReplaceAll(path1, `\`, "/")
+	bloom := BloomFilter{}
+	file, err := os.OpenFile(str, os.O_RDWR, 0666)
+	if err != nil {
+		panic(err)
+	}
+	decoder := gob.NewDecoder(file)
+	_ = decoder.Decode(&bloom)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	hashes := Make_hashes(bloom.k, bloom.m)
+	bloom.Hashes = hashes
+	return &bloom
+
 }
 
 func CalculateM(expectedElements int, falsePositiveRate float64) uint {

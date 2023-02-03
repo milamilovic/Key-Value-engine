@@ -37,6 +37,7 @@ type Engine struct {
 	memb          *MemTableBTree.MemTable
 	da_li_je_skip bool
 	token         *TokenBucket.TokenBucket
+	indexBloom    int
 }
 
 func default_konfig(engine *Engine) {
@@ -94,7 +95,8 @@ func initialize() *Engine {
 	engine.cms_pokaz = make(map[string]*CountMinSketch.CountMinSketch)
 	engine.hll_podaci = make(map[string][]byte)
 	engine.hll_pokaz = make(map[string]*HyperLogLog.HLL)
-	engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1))
+	engine.indexBloom = 1
+	engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1), 1, engine.indexBloom)
 	engine.cache = Cache.KreirajCache(engine.konfiguracije["cache_size"])
 	engine.wal = Wal.NapraviWal("Data\\Wal", engine.konfiguracije["wal_low_water_mark"])
 	engine.token = TokenBucket.NewTokenBucket(engine.konfiguracije["token_key"], engine.konfiguracije["token_maxtok"], int64(engine.konfiguracije["token_interval"]))
@@ -168,8 +170,11 @@ func menu(engine *Engine) {
 		case "1":
 			key, value := nabavi_vrednosti_dodavanje()
 			if engine.da_li_je_skip {
-				dodavanje.Dodaj_skiplist(key, value, engine.mems, engine.wal, engine.token)
+				dodavanje.Dodaj_skiplist(key, value, engine.mems, engine.wal, engine.token, engine.bloom)
 				if engine.mems.ProveriFlush() {
+					engine.indexBloom++
+					engine.bloom = nil
+					engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1), 1, engine.indexBloom)
 					engine.mems.Flush()
 					engine.mems = MemTableSkipList.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
 
