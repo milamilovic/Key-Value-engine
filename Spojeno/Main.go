@@ -178,11 +178,15 @@ func menu(engine *Engine) {
 		case "2":
 			key := nabavi_vrednosti_brisanje()
 			if engine.da_li_je_skip {
-				b, value := citanje.Citaj(key, engine.mems, engine.cache)
+				b, value := citanje.CitajSkip(key, engine.mems, engine.cache)
 				if b {
 					fmt.Println("Nasao je kljuc, vrednost je:", value)
 				}
 			} else {
+				b, value := citanje.CitajBTree(key, engine.memb, engine.cache)
+				if b {
+					fmt.Println("Nasao je kljuc, vrednost je:", value)
+				}
 
 			}
 			break
@@ -321,7 +325,7 @@ func addCms(engine *Engine) {
 
 	//NE RADI UPIS U FAJL!!!!!!!!!!!!!!!
 
-	path1, _ := filepath.Abs("../Data")
+	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	file_cms, errData := os.OpenFile(path+"/cms.txt", os.O_CREATE|os.O_WRONLY, 0777)
 	if errData != nil {
