@@ -3,7 +3,6 @@ package citanje
 import (
 	"Strukture/BloomFilter"
 	"Strukture/Cache"
-	"Strukture/MemTableBTree"
 	"Strukture/MemTableSkipList"
 	"Strukture/SSTable"
 	"fmt"
@@ -42,7 +41,7 @@ func CitajSkip(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.C
 						if err != nil {
 							panic(err)
 						}
-						offset, b := SSTable.NadjiSummary(kljuc, sumFile)
+						b := SSTable.NadjiSummary(kljuc, sumFile)
 						if b {
 							fmt.Println("Nasao u summary fajlu")
 							indBr := 0
@@ -54,7 +53,7 @@ func CitajSkip(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.C
 									if err != nil {
 										panic(err)
 									}
-									b, offset1 := SSTable.NadjiIndex(offset, indFile, kljuc)
+									b, offset := SSTable.NadjiIndex(indFile, kljuc)
 									if b {
 										fmt.Println("Nasao u indexu")
 										datBr := 0
@@ -66,7 +65,7 @@ func CitajSkip(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.C
 												if err != nil {
 													panic(err)
 												}
-												b, value := SSTable.NadjiElement(offset1, dataFile, kljuc)
+												b, value := SSTable.NadjiElement(offset, dataFile, kljuc)
 												if b {
 													fmt.Println("Nasao u data")
 													return b, value
@@ -92,74 +91,75 @@ func CitajSkip(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.C
 
 	return false, nil
 }
-func CitajBTree(kljuc string, memTable *MemTableBTree.MemTable, cache *Cache.Cache) (bool, []byte) {
-	path1, _ := filepath.Abs("../Spojeno/Data")
-	path := strings.ReplaceAll(path1, `\`, "/")
-	data_files, _, index_files, summary_files, _ := Svi_fajlovi(path)
-	b, value := memTable.NadjiElement(kljuc)
-	if b {
-		return b, value
-	} else {
-		b, _ := cache.GetFromCache(kljuc) //ako mu pristupi stavi ga na pocetak cache-a
-		if b {
-			value, _ = cache.NadjiUCache(kljuc)
-			return b, value
-		} else {
-			fmt.Println("Usao u summary fajlove")
-			// for _, bfajl := range filter_files {
-			// 	BloomFilter
-			// }
-			sumBr := 0
-			for _, sFajl := range summary_files {
-				sumBr++
-				sumFile, err := os.OpenFile(path+"/SSTableData/"+sFajl, os.O_RDONLY, 0777)
-				if err != nil {
-					panic(err)
-				}
-				offset, b := SSTable.NadjiSummary(kljuc, sumFile)
-				if b {
-					fmt.Println("Nasao u summary fajlu")
-					indBr := 0
-					for _, iFajl := range index_files {
-						indBr++
-						if indBr == sumBr {
-							fmt.Println("Cita u indexu")
-							indFile, err := os.OpenFile(path+"/SSTableData/"+iFajl, os.O_RDONLY, 0777)
-							if err != nil {
-								panic(err)
-							}
-							b, offset1 := SSTable.NadjiIndex(offset, indFile, kljuc)
-							if b {
-								fmt.Println("Nasao u indexu")
-								datBr := 0
-								for _, dataFajl := range data_files {
-									datBr++
-									if datBr == indBr {
-										fmt.Println("Cita u data")
-										dataFile, err := os.OpenFile(path+"/SSTableData/"+dataFajl, os.O_RDONLY, 0777)
-										if err != nil {
-											panic(err)
-										}
-										b, value := SSTable.NadjiElement(offset1, dataFile, kljuc)
-										if b {
-											fmt.Println("Nasao u data")
-											return b, value
 
-										}
-									}
-								}
-							}
-						}
+// func CitajBTree(kljuc string, memTable *MemTableBTree.MemTable, cache *Cache.Cache) (bool, []byte) {
+// 	path1, _ := filepath.Abs("../Spojeno/Data")
+// 	path := strings.ReplaceAll(path1, `\`, "/")
+// 	data_files, _, index_files, summary_files, _ := Svi_fajlovi(path)
+// 	b, value := memTable.NadjiElement(kljuc)
+// 	if b {
+// 		return b, value
+// 	} else {
+// 		b, _ := cache.GetFromCache(kljuc) //ako mu pristupi stavi ga na pocetak cache-a
+// 		if b {
+// 			value, _ = cache.NadjiUCache(kljuc)
+// 			return b, value
+// 		} else {
+// 			fmt.Println("Usao u summary fajlove")
+// 			// for _, bfajl := range filter_files {
+// 			// 	BloomFilter
+// 			// }
+// 			sumBr := 0
+// 			for _, sFajl := range summary_files {
+// 				sumBr++
+// 				sumFile, err := os.OpenFile(path+"/SSTableData/"+sFajl, os.O_RDONLY, 0777)
+// 				if err != nil {
+// 					panic(err)
+// 				}
+// 				offset, b := SSTable.NadjiSummary(kljuc, sumFile)
+// 				if b {
+// 					fmt.Println("Nasao u summary fajlu")
+// 					indBr := 0
+// 					for _, iFajl := range index_files {
+// 						indBr++
+// 						if indBr == sumBr {
+// 							fmt.Println("Cita u indexu")
+// 							indFile, err := os.OpenFile(path+"/SSTableData/"+iFajl, os.O_RDONLY, 0777)
+// 							if err != nil {
+// 								panic(err)
+// 							}
+// 							b, offset1 := SSTable.NadjiIndex(offset, indFile, kljuc)
+// 							if b {
+// 								fmt.Println("Nasao u indexu")
+// 								datBr := 0
+// 								for _, dataFajl := range data_files {
+// 									datBr++
+// 									if datBr == indBr {
+// 										fmt.Println("Cita u data")
+// 										dataFile, err := os.OpenFile(path+"/SSTableData/"+dataFajl, os.O_RDONLY, 0777)
+// 										if err != nil {
+// 											panic(err)
+// 										}
+// 										b, value := SSTable.NadjiElement(offset1, dataFile, kljuc)
+// 										if b {
+// 											fmt.Println("Nasao u data")
+// 											return b, value
 
-					}
+// 										}
+// 									}
+// 								}
+// 							}
+// 						}
 
-				}
-			}
-		}
+// 					}
 
-	}
-	return false, nil
-}
+// 				}
+// 			}
+// 		}
+
+// 	}
+// 	return false, nil
+// }
 
 func Svi_fajlovi(folder string) ([]string, []string, []string, []string, []string) {
 	fajlovi, err := ioutil.ReadDir(folder)

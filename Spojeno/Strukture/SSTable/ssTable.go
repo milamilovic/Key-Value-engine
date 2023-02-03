@@ -31,9 +31,8 @@ func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 	if errSum != nil {
 		panic(errInd)
 	}
-	var offsetDat uint64 = 0
+
 	var offsetInd uint64 = 0
-	offset_sum := make([]byte, 8)
 
 	first := make([]byte, 8)
 	first_u := uint64(len(lCvor[0].GetKey()))
@@ -47,6 +46,7 @@ func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 	sumFile.Write([]byte(lCvor[0].GetKey()))
 	sumFile.Write(last)
 	sumFile.Write([]byte(lCvor[len(lCvor)-1].GetKey()))
+	sumFile.Close()
 
 	for _, cvor := range lCvor {
 
@@ -78,29 +78,20 @@ func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 
 		size := 4 + 8 + 1 + 8 + 8 + key_u + val_u
 		offset_ind := make([]byte, 8)
-		binary.LittleEndian.PutUint64(offset_ind, offsetDat)
+		binary.LittleEndian.PutUint64(offset_ind, offsetInd)
+
 		indFile.Write(keySize)
 		indFile.Write([]byte(cvor.GetKey()))
 		indFile.Write(offset_ind)
-		offsetDat = offsetDat + size
-		ind_offset := 16 + key_u
 
-		//offset_sum := make([]byte, 8)
-		binary.LittleEndian.PutUint64(offset_sum, offsetInd)
-		sumFile.Write(keySize)
-		sumFile.Write([]byte(cvor.GetKey()))
-		//sumFile.Write(offset_sum)
-		offsetInd = offsetInd + ind_offset
+		offsetInd = offsetInd + size
+
 	}
-	offsetttt := make([]byte, 8)
-	binary.LittleEndian.PutUint64(offsetttt, offsetInd)
-	sumFile.Write(offsetttt)
 	datFile.Close()
 	indFile.Close()
-	sumFile.Close()
 }
 
-func NadjiSummary(kljuc string, f *os.File) (uint64, bool) {
+func NadjiSummary(kljuc string, f *os.File) bool {
 	size := make([]byte, 8)
 	f.Read(size)
 	keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
@@ -114,61 +105,35 @@ func NadjiSummary(kljuc string, f *os.File) (uint64, bool) {
 	f.Read(key_read)
 	key2 := string(key_read) //poslednji kljuc
 	if kljuc > key2 || kljuc < key1 {
-		return 0, false
+		return false
 	}
-	for true { //citamo kljuceve redom
+	return true
+
+}
+func NadjiIndex(f *os.File, kljuc string) (bool, uint64) {
+	f.Seek(0, 0)
+	for true {
 		size := make([]byte, 8)
 		f.Read(size)
-		keySize := binary.LittleEndian.Uint64(size)
+		keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
 		key_read := make([]byte, keySize)
 		f.Read(key_read)
 		key := string(key_read)
+		fmt.Println(key)
+		of := make([]byte, 8)
+		f.Read(of)
+		offset := binary.LittleEndian.Uint64(of) //velicina offseta
+		if key == kljuc {
+			return true, offset
+		}
 		if key > kljuc {
-			return 0, false
-		} else if key < kljuc {
-			f.Seek(8, 1)
+			return false, 0
+		}
+		if key < kljuc {
 			continue
-		} else { //isti su, nasli smo ga
-			offset := make([]byte, 8) //citamo sledecih 8 bajtova sto je nas trazeni offset
-			f.Read(offset)
-			offsetSize := binary.LittleEndian.Uint64(size)
-			return offsetSize, true
 		}
 	}
-	return 0, false
-
-}
-func NadjiIndex(offset uint64, f *os.File, kljuc string) (bool, uint64) {
-	f.Seek(int64(offset), 0)
-	size := make([]byte, 8)
-	f.Read(size)
-	keySize := binary.LittleEndian.Uint64(size)
-	f.Seek(int64(keySize), 1)
-	offset_kljuca := make([]byte, 8)
-	f.Read(offset_kljuca)
-	offset = binary.LittleEndian.Uint64(offset_kljuca)
-	return true, offset
-	// for true {
-	// 	size := make([]byte, 8)
-	// 	f.Read(size)
-	// 	keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
-	// 	key_read := make([]byte, keySize)
-	// 	f.Read(key_read)
-	// 	key := string(key_read)
-	// 	fmt.Println(key)
-	// 	if key > kljuc {
-	// 		return false, 0
-	// 	} else if key < kljuc {
-	// 		f.Seek(int64(keySize), 1)
-	// 		continue
-	// 	} else { //isti su, nasli smo ga
-	// 		offset := make([]byte, 8) //citamo sledecih 8 bajtova sto je nas trazeni offset
-	// 		f.Read(offset)
-	// 		offsetSize := binary.LittleEndian.Uint64(size)
-	// 		return true, offsetSize
-	// 	}
-	// }
-	// return false, 0
+	return false, 0
 }
 
 func NadjiElement(offset uint64, f *os.File, kljuc string) (bool, []byte) {
@@ -470,48 +435,3 @@ func Svi_kljucevi_jednog_fajla(f *os.File) []string {
 	return kljucevi
 
 }
-
-// func main() {
-// 	sl := SkipList.MakeSkipList(5)
-// 	sl.Add("1", []byte("a"))
-// 	sl.Add("2", []byte("a"))
-// 	sl.Add("3", []byte("a"))
-// 	sl.Add("4", []byte("a"))
-// 	sl.Add("5", []byte("a"))
-// 	MakeSSTable(sl.GetElements(), 1, 1)
-
-// 	sl = SkipList.MakeSkipList(5)
-// 	sl.Add("3", []byte("a"))
-// 	sl.Add("7", []byte("a"))
-// 	sl.Add("8", []byte("a"))
-// 	sl.Add("9", []byte("a"))
-// 	sl.Add("5", []byte("a"))
-// 	MakeSSTable(sl.GetElements(), 1, 2)
-// 	Compaction(2, 2, 1, 5)
-// file, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/SummaryFileL1Id1.db", os.O_RDONLY, 0777)
-// if err != nil {
-// 	panic(err)
-// }
-// offset, b := nadjiSummary("2", file)
-// file.Close()
-// if b {
-// 	file, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/IndexFileL1Id1.db", os.O_RDONLY, 0777)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	b, offset = nadjiIndex(offset, file, "2")
-// 	file.Close()
-// 	if b {
-// 		file, err := os.OpenFile("C:/Users/Sonja/Desktop/Key-Value-engine/Data/SSTableData/DataFileL1Id1.db", os.O_RDONLY, 0777)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		bb, _ := nadjiElement(offset, file, "2")
-// 		file.Close()
-// 		if bb {
-// 			print("Nasli smo ga")
-// 		}
-// 	}
-// }
-
-// }
