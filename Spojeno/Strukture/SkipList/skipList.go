@@ -78,8 +78,9 @@ func (list *SkipList) GetElements() []*SkipListNode {
 	niz = append(niz, curr)
 	for i := 1; i < list.size; i++ {
 		curr = curr.next[0]
-		niz = append(niz, curr)
-
+		if curr.tombstone == false {
+			niz = append(niz, curr)
+		}
 	}
 	return niz
 }

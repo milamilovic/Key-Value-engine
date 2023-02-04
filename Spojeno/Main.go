@@ -38,6 +38,7 @@ type Engine struct {
 	da_li_je_skip   bool
 	token           *TokenBucket.TokenBucket
 	indexBloom      int
+	levelBloom      int
 	simHashevi      map[string]string
 	simHashKljucevi []string
 }
@@ -67,10 +68,14 @@ func initialize() *Engine {
 	engine := Engine{}
 	engine.konfiguracije = make(map[string]int)
 	file, err := os.ReadFile("Data/Konfiguracije/konfiguracije.txt")
+	podaci, _ := os.ReadFile("Data/Konfiguracije/podaci.txt")
 	broj := -5
 	if err != nil {
 		default_konfig(&engine)
 	} else {
+		pod := SplitLines(string(podaci))
+		engine.levelBloom, _ = strconv.Atoi(pod[0])
+		engine.indexBloom, _ = strconv.Atoi(pod[1])
 		delovi := SplitLines(string(file))
 		engine.konfiguracije["memtable_max_velicina"], _ = strconv.Atoi(delovi[0])
 		engine.konfiguracije["cache_size"], _ = strconv.Atoi(delovi[1])
@@ -98,8 +103,7 @@ func initialize() *Engine {
 	engine.cms_pokaz = make(map[string]*CountMinSketch.CountMinSketch)
 	engine.hll_podaci = make(map[string][]byte)
 	engine.hll_pokaz = make(map[string]*HyperLogLog.HLL)
-	engine.indexBloom = 1
-	engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1), 1, engine.indexBloom)
+	engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1), engine.levelBloom, engine.indexBloom)
 	engine.cache = Cache.KreirajCache(engine.konfiguracije["cache_size"])
 	engine.wal = Wal.NapraviWal("Data\\Wal", engine.konfiguracije["wal_low_water_mark"])
 	engine.token = TokenBucket.NewTokenBucket(engine.konfiguracije["token_key"], engine.konfiguracije["token_maxtok"], int64(engine.konfiguracije["token_interval"]))
@@ -174,7 +178,8 @@ func menu(engine *Engine) {
 			key, value := nabavi_vrednosti_dodavanje()
 			if engine.da_li_je_skip {
 				dodavanje.Dodaj_skiplist(key, value, engine.mems, engine.wal, engine.token, engine.bloom)
-				if engine.mems.ProveriFlush() {
+				b, _ := engine.mems.ProveriFlush()
+				if b {
 					engine.mems.Flush(engine.indexBloom)
 					engine.indexBloom++
 					engine.bloom = nil
@@ -184,8 +189,12 @@ func menu(engine *Engine) {
 				}
 			} else {
 				dodavanje.Dodaj_bstablo(key, value, engine.memb, engine.wal, engine.token)
-				if engine.memb.ProveriFlush() {
-					engine.memb.Flush()
+				b, _ := engine.memb.ProveriFlush()
+				if b {
+					engine.memb.Flush(engine.indexBloom)
+					engine.indexBloom++
+					engine.bloom = nil
+					engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1), 1, engine.indexBloom)
 					engine.memb = MemTableBTree.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
 
 				}
@@ -197,11 +206,15 @@ func menu(engine *Engine) {
 				b, value := citanje.CitajSkip(key, engine.mems, engine.cache)
 				if b {
 					fmt.Println("Nasao je kljuc, vrednost je:", value)
+				} else {
+					fmt.Println("Nije nasao uneti kljuc")
 				}
 			} else {
 				b, value := citanje.CitajBTree(key, engine.memb, engine.cache)
 				if b {
 					fmt.Println("Nasao je kljuc, vrednost je:", value)
+				} else {
+					fmt.Println("Nije nasao uneti kljuc")
 				}
 
 			}
@@ -250,6 +263,34 @@ func menu(engine *Engine) {
 			desetPlusMeni(engine)
 			break
 		case "x":
+			if engine.da_li_je_skip {
+				b, velicina := engine.mems.ProveriFlush()
+				if b == false && velicina > 0 {
+					engine.mems.Flush(engine.indexBloom)
+					engine.indexBloom++
+				}
+				novi_pod := strconv.Itoa(engine.levelBloom) + "\n" + strconv.Itoa(engine.indexBloom)
+				file, err := os.OpenFile("Data/Konfiguracije/podaci.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+				if err != nil {
+					panic(err)
+				}
+				file.WriteString(novi_pod)
+				file.Close()
+
+			} else {
+				b, velicina := engine.memb.ProveriFlush()
+				if b == false && velicina > 0 {
+					engine.memb.Flush(engine.indexBloom)
+					engine.indexBloom++
+				}
+				novi_pod := strconv.Itoa(engine.levelBloom) + "\n" + strconv.Itoa(engine.indexBloom)
+				file, err := os.OpenFile("Data/Konfiguracije/podaci.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+				if err != nil {
+					panic(err)
+				}
+				file.WriteString(novi_pod)
+				file.Close()
+			}
 			b = false
 			break
 		default:

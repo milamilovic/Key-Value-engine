@@ -70,26 +70,25 @@ func (memTable *MemTable) BrisiElement(key string) bool {
 	}
 }
 
-func (memTable *MemTable) ProveriFlush() bool {
+func (memTable *MemTable) ProveriFlush() (bool, int) {
 	if memTable.maxVelicina <= memTable.trenutnaVelicina {
-		return true //treba flush odraditi
+		return true, 0 //treba flush odraditi
 	} else {
-		return false
+		return false, memTable.trenutnaVelicina
 	}
 }
 
-var i int = 0
-
-func (memTable *MemTable) Flush() {
+func (memTable *MemTable) Flush(i int) {
 	memTable.NapraviSSTable(i)
-	memTable = KreirajMemTable(10, 10) //pre ovoga treba upisati na disk, SStable
 }
 
 func (memTable *MemTable) NapraviSSTable(i int) {
 	sl := SkipList.NapraviSkipList(nizSize)
 	for _, elem := range Niz {
-		sl.Add(elem.GetKey(), elem.GetValue())
+		if elem.GetTombstone() == false {
+			sl.Add(elem.GetKey(), elem.GetValue())
+		}
+
 	}
-	i++
 	SSTable.NapraviSSTable(sl.GetElements(), 1, i)
 }

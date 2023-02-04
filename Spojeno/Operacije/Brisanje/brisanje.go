@@ -11,6 +11,7 @@ func Obrisi_skiplist(key string, mt *MemTableSkipList.MemTable, c *Cache.Cache) 
 	obrisan := mt.BrisiElement(key)
 	if obrisan {
 		c.ObrisiIzCache(key)
+		//kada je memTable pun ako ima neki logicki obrisan element?
 		return true
 	}
 	return false

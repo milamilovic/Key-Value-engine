@@ -64,11 +64,11 @@ func (memTable *MemTable) BrisiElement(key string) bool {
 	}
 }
 
-func (memTable *MemTable) ProveriFlush() bool {
+func (memTable *MemTable) ProveriFlush() (bool, int) {
 	if memTable.maxVelicina <= memTable.trenutnaVelicina {
-		return true //treba flush odraditi
+		return true, 0 //treba flush odraditi
 	} else {
-		return false
+		return false, memTable.trenutnaVelicina
 	}
 }
 
