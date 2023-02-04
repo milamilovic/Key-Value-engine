@@ -413,7 +413,6 @@ func Svi_kljucevi_jednog_fajla(f *os.File) []string {
 		key_read := make([]byte, keySize)
 		f.Read(key_read)
 		key := string(key_read)
-		fmt.Println(key)
 		kljucevi = append(kljucevi, key)
 		of := make([]byte, 8)
 		f.Read(of)
