@@ -326,10 +326,10 @@ func menu(engine *Engine) {
 			for i := 0; i < len(trazeni_kljucevi); i++ {
 				if engine.da_li_je_skip {
 					_, value := citanje.CitajSkip(trazeni_kljucevi[i], engine.mems, engine.cache)
-					vrednosti = append(vrednosti, value)
+					vrednosti[i] = value
 				} else {
 					_, value := citanje.CitajBTree(trazeni_kljucevi[i], engine.memb, engine.cache)
-					vrednosti = append(vrednosti, value)
+					vrednosti[i] = value
 				}
 			}
 			fmt.Println("Vrednosti dobijene range scan-om su: ")
