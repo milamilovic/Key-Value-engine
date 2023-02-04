@@ -4,6 +4,7 @@ import (
 	brisanje "Operacije/Brisanje"
 	citanje "Operacije/Citanje"
 	dodavanje "Operacije/Pisanje"
+	"Operacije/RangeScan"
 	"Strukture/BloomFilter"
 	"Strukture/Cache"
 	"Strukture/CountMinSketch"
@@ -258,6 +259,49 @@ func menu(engine *Engine) {
 			break
 		case "5":
 			//rangeScan()
+			var kljucevi_memtable []string
+			if engine.da_li_je_skip {
+				for i := range engine.mems.Elementi.GetElements() {
+					if engine.mems.Elementi.GetElements()[i] != nil {
+						kljucevi_memtable = append(kljucevi_memtable, engine.mems.Elementi.GetElements()[i].GetKey())
+					}
+				}
+			} else {
+				for _, elem := range MemTableBTree.Niz {
+					kljucevi_memtable = append(kljucevi_memtable, elem.GetKey())
+				}
+			}
+			fmt.Println("Minimalan kljuc:")
+			kljuc1 := nabavi_vrednosti_brisanje()
+			fmt.Println("Maksimalan kljuc:")
+			kljuc2 := nabavi_vrednosti_brisanje()
+			if kljuc1 > kljuc2 {
+				fmt.Println("Odnos kljuceva nije dobar!")
+				break
+			}
+			fmt.Println("Unesite velicinu stranice: ")
+			r := bufio.NewReader(os.Stdin)
+			unos, _ := r.ReadString('\n')
+			unos = strings.Replace(unos, "\n", "", 1)
+			unos = strings.Replace(unos, "\r", "", 1)
+			velicina, err := strconv.ParseInt(unos, 10, 0)
+			if err != nil {
+				fmt.Println("Niste uneli broj!")
+				break
+			}
+			fmt.Println("Unesite redni broj stranice koju zelite: ")
+			r = bufio.NewReader(os.Stdin)
+			unos, _ = r.ReadString('\n')
+			unos = strings.Replace(unos, "\n", "", 1)
+			unos = strings.Replace(unos, "\r", "", 1)
+			redni_broj, err := strconv.ParseInt(unos, 10, 0)
+			if err != nil {
+				fmt.Println("Niste uneli broj!")
+				break
+			}
+			vrednosti := RangeScan.DoRangeScan(kljuc1, kljuc2, int(velicina), int(redni_broj), kljucevi_memtable)
+			fmt.Println("Vrednosti dobijene range scan-om su: ")
+			fmt.Println(vrednosti)
 			break
 		case "6":
 			desetPlusMeni(engine)
