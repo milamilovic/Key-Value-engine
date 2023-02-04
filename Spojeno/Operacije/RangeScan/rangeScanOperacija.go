@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func DoRangeScan(min string, maks string, velicina int, broj int, kljucevi_memtable []string, da_li_je_skip bool) [][]byte {
+func DoRangeScan(min string, maks string, velicina int, broj int, kljucevi_memtable []string) []string {
 	path1, _ := filepath.Abs("../Spojeno/Data/SSTableData")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	_, _, index_files, _, _ := citanje.Svi_fajlovi(path)
@@ -22,16 +22,17 @@ func DoRangeScan(min string, maks string, velicina int, broj int, kljucevi_memta
 		kljucevi1 = append(kljucevi1, SSTable.Svi_kljucevi_jednog_fajla(indFile)...)
 	}
 	kljucevi1 = append(kljucevi1, kljucevi_memtable...)
-	kljucevi := make([]string, 0)
 	sort.Strings(kljucevi1)
+	kljucevi := make([]string, 0)
+	for i := 0; i < len(kljucevi1); i++ {
+		if kljucevi1[i] < maks && kljucevi1[i] > min {
+			kljucevi = append(kljucevi, kljucevi1[i])
+		}
+	}
 	potrebni_kljucevi := make([]string, 0)
 	indeks := velicina * (broj - 1)
 	for i := indeks; i < indeks+velicina; i++ {
 		potrebni_kljucevi = append(potrebni_kljucevi, kljucevi[i])
 	}
-	//trazene_vrednosti := make([][]byte, len(potrebni_kljucevi))
-	for i := 0; i < len(potrebni_kljucevi); i++ {
-		//trazene_vrednosti = append(trazene_vrednosti, )
-	}
-	return make([][]byte, 0)
+	return potrebni_kljucevi
 }
