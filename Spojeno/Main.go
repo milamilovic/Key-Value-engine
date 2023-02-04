@@ -321,7 +321,7 @@ func menu(engine *Engine) {
 				fmt.Println("Niste uneli broj!")
 				break
 			}
-			vrednosti := RangeScan.DoRangeScan(kljuc1, kljuc2, int(velicina), int(redni_broj), kljucevi_memtable)
+			vrednosti := RangeScan.DoRangeScan(kljuc1, kljuc2, int(velicina), int(redni_broj), kljucevi_memtable, engine.da_li_je_skip)
 			fmt.Println("Vrednosti dobijene range scan-om su: ")
 			fmt.Println(vrednosti)
 			break
