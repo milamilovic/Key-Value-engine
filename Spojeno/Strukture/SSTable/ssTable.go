@@ -2,6 +2,7 @@ package SSTable
 
 import (
 	"Strukture/BloomFilter"
+	"Strukture/MerkleTree"
 	"Strukture/SkipList"
 	"encoding/binary"
 	"fmt"
@@ -31,9 +32,8 @@ func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 	if errSum != nil {
 		panic(errInd)
 	}
-
 	var offsetInd uint64 = 0
-
+	stringovi := []string{}
 	first := make([]byte, 8)
 	first_u := uint64(len(lCvor[0].GetKey()))
 	binary.LittleEndian.PutUint64(first, first_u)
@@ -76,6 +76,8 @@ func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 		datFile.Write([]byte(cvor.GetKey()))
 		datFile.Write(cvor.GetValue())
 
+		stringovi = append(stringovi, cvor.GetKey())
+
 		size := 4 + 8 + 1 + 8 + 8 + key_u + val_u
 		offset_ind := make([]byte, 8)
 		binary.LittleEndian.PutUint64(offset_ind, offsetInd)
@@ -87,6 +89,9 @@ func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 		offsetInd = offsetInd + size
 
 	}
+	niz := MerkleTree.Pretvori_u_bajtove(stringovi)
+	MerkleTree.Kreiraj_MerkleTree(niz, path+"/SSTableData/MetadataL"+strconv.Itoa(level)+
+		"Id"+strconv.Itoa(index)+".txt")
 	datFile.Close()
 	indFile.Close()
 }
