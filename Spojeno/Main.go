@@ -321,7 +321,17 @@ func menu(engine *Engine) {
 				fmt.Println("Niste uneli broj!")
 				break
 			}
-			vrednosti := RangeScan.DoRangeScan(kljuc1, kljuc2, int(velicina), int(redni_broj), kljucevi_memtable)
+			trazeni_kljucevi := RangeScan.DoRangeScan(kljuc1, kljuc2, int(velicina), int(redni_broj), kljucevi_memtable)
+			vrednosti := make([][]byte, len(trazeni_kljucevi))
+			for i := 0; i < len(trazeni_kljucevi); i++ {
+				if engine.da_li_je_skip {
+					_, value := citanje.CitajSkip(trazeni_kljucevi[i], engine.mems, engine.cache)
+					vrednosti = append(vrednosti, value)
+				} else {
+					_, value := citanje.CitajBTree(trazeni_kljucevi[i], engine.memb, engine.cache)
+					vrednosti = append(vrednosti, value)
+				}
+			}
 			fmt.Println("Vrednosti dobijene range scan-om su: ")
 			fmt.Println(vrednosti)
 			break
