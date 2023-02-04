@@ -252,7 +252,6 @@ func menu(engine *Engine) {
 					kljucevi = append(kljucevi, elem.GetKey())
 				}
 			}
-			fmt.Println(kljucevi)
 			fmt.Println("Unesite podstring kljuca koji trazite:")
 			podstring := nabavi_vrednosti_brisanje()
 			fmt.Println("Unesite velicinu stranice: ")
@@ -275,8 +274,18 @@ func menu(engine *Engine) {
 				fmt.Println("Niste uneli broj!")
 				break
 			}
-			vrednosti := List.List(podstring, int(velicina), int(redni_broj), kljucevi)
-			fmt.Println("Vrednosti dobijene range scan-om su: ")
+			trazeni_kljucevi := List.List(podstring, int(velicina), int(redni_broj), kljucevi)
+			vrednosti := make([][]byte, len(trazeni_kljucevi))
+			for i := 0; i < len(trazeni_kljucevi); i++ {
+				if engine.da_li_je_skip {
+					_, value := citanje.CitajSkip(trazeni_kljucevi[i], engine.mems, engine.cache)
+					vrednosti[i] = value
+				} else {
+					_, value := citanje.CitajBTree(trazeni_kljucevi[i], engine.memb, engine.cache)
+					vrednosti[i] = value
+				}
+			}
+			fmt.Println("Vrednosti dobijene list-om su: ")
 			fmt.Println(vrednosti)
 			break
 		case "5":
