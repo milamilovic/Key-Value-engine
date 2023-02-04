@@ -3,6 +3,7 @@ package RangeScan
 import (
 	citanje "Operacije/Citanje"
 	"Strukture/SSTable"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -23,18 +24,24 @@ func DoRangeScan(min string, maks string, velicina int, broj int, kljucevi_memta
 	}
 	kljucevi1 = append(kljucevi1, kljucevi_memtable...)
 	sort.Strings(kljucevi1)
+	fmt.Println("sortirani svi kljucevi: ")
+	fmt.Println(kljucevi1)
 	kljucevi := make([]string, 0)
 	for i := 0; i < len(kljucevi1); i++ {
 		if kljucevi1[i] < maks && kljucevi1[i] > min {
 			kljucevi = append(kljucevi, kljucevi1[i])
 		}
 	}
+	fmt.Println("Kljucevi koji ispunjavaju uslove: ")
+	fmt.Println(kljucevi)
 	potrebni_kljucevi := make([]string, 0)
 	indeks := velicina * (broj - 1)
 	for i := indeks; i < indeks+velicina; i++ {
-		if i < len(potrebni_kljucevi) {
+		if i < len(kljucevi[i]) {
 			potrebni_kljucevi = append(potrebni_kljucevi, kljucevi[i])
 		}
 	}
+	fmt.Println("trazeni kljucevi: ")
+	fmt.Println(potrebni_kljucevi)
 	return potrebni_kljucevi
 }
