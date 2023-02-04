@@ -3,6 +3,7 @@ package main
 import (
 	brisanje "Operacije/Brisanje"
 	citanje "Operacije/Citanje"
+	"Operacije/List"
 	dodavanje "Operacije/Pisanje"
 	"Operacije/RangeScan"
 	"Strukture/BloomFilter"
@@ -231,14 +232,10 @@ func menu(engine *Engine) {
 		case "4":
 			path1, _ := filepath.Abs("../Spojeno/Data/SSTableData")
 			path := strings.ReplaceAll(path1, `\`, "/")
-			//fmt.Println(path)
 			_, _, index_files, _, _ := citanje.Svi_fajlovi(path)
 			var kljucevi []string
 			for i := range index_files {
-				//fmt.Println(summary_files)
 				indFile, err := os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
-				//fmt.Println(sumFile)
-				//fmt.Println(path + "/" + summary_files[i])
 				if err != nil {
 					panic(err)
 				}
@@ -256,6 +253,31 @@ func menu(engine *Engine) {
 				}
 			}
 			fmt.Println(kljucevi)
+			fmt.Println("Unesite podstring kljuca koji trazite:")
+			podstring := nabavi_vrednosti_brisanje()
+			fmt.Println("Unesite velicinu stranice: ")
+			r := bufio.NewReader(os.Stdin)
+			unos, _ := r.ReadString('\n')
+			unos = strings.Replace(unos, "\n", "", 1)
+			unos = strings.Replace(unos, "\r", "", 1)
+			velicina, err := strconv.ParseInt(unos, 10, 0)
+			if err != nil {
+				fmt.Println("Niste uneli broj!")
+				break
+			}
+			fmt.Println("Unesite redni broj stranice koju zelite: ")
+			r = bufio.NewReader(os.Stdin)
+			unos, _ = r.ReadString('\n')
+			unos = strings.Replace(unos, "\n", "", 1)
+			unos = strings.Replace(unos, "\r", "", 1)
+			redni_broj, err := strconv.ParseInt(unos, 10, 0)
+			if err != nil {
+				fmt.Println("Niste uneli broj!")
+				break
+			}
+			vrednosti := List.List(podstring, int(velicina), int(redni_broj), kljucevi)
+			fmt.Println("Vrednosti dobijene range scan-om su: ")
+			fmt.Println(vrednosti)
 			break
 		case "5":
 			//rangeScan()
