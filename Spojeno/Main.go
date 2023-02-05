@@ -203,6 +203,17 @@ func menu(engine *Engine) {
 			}
 			break
 		case "2":
+
+			path1, _ := filepath.Abs("../Spojeno/Data")
+			path := strings.ReplaceAll(path1, `\`, "/")
+			datFile, errData := os.OpenFile(path+"/SSTableData/AllDataFileL"+strconv.Itoa(1)+
+				"Id"+strconv.Itoa(1)+".db", os.O_CREATE|os.O_RDONLY, 0777)
+			if errData != nil {
+				panic(errData)
+			}
+			b := SSTable.NadjiSummaryJedanFajl("1", datFile)
+			fmt.Println(b)
+
 			key := nabavi_vrednosti_brisanje()
 			if engine.da_li_je_skip {
 				b, value := citanje.CitajSkip(key, engine.mems, engine.cache)

@@ -77,5 +77,5 @@ func (memTable *MemTable) Flush(i int) {
 }
 
 func (memTable *MemTable) NapraviSSTable(i int) {
-	SSTable.NapraviSSTable(memTable.Elementi.GetElements(), 1, i)
+	SSTable.NapraviSSTableJedanFajl(memTable.Elementi.GetElements(), 1, i)
 }
