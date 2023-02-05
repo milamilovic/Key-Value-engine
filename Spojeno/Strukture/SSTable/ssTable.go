@@ -315,7 +315,13 @@ func Kompakcija(brojFajlova int, maxLevel int, level int, maxBloom int) {
 		datFileGlavni, errData := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
 			"Id"+strconv.Itoa(brGlavni)+".db", os.O_RDONLY, 0777)
 		if errData != nil {
-			panic(errData)
+			path1, _ = filepath.Abs("../Projekat/Spojeno/Data")
+			path = strings.ReplaceAll(path1, `\`, "/")
+			datFileGlavni, errData = os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
+				"Id"+strconv.Itoa(brGlavni)+".db", os.O_RDONLY, 0777)
+			if errData!=nil{
+				panic(errData)
+			}
 		}
 		for {
 			_, time1, tomb1, _, _, key1, val1, end1 := GetData(datFileGlavni)

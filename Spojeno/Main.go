@@ -71,7 +71,19 @@ func initialize() *Engine {
 	engine := Engine{}
 	engine.konfiguracije = make(map[string]int)
 	file, err := os.ReadFile("Data/Konfiguracije/konfiguracije.txt")
-	podaci, _ := os.ReadFile("Data/Konfiguracije/podaci.txt")
+	if err != nil {
+		file, err = os.ReadFile("../Projekat/Spojeno/Data/Konfiguracije/konfiguracije.txt")
+		if err != nil {
+			panic(err)
+		}
+	}
+	podaci, err := os.ReadFile("Data/Konfiguracije/podaci.txt")
+	if err != nil {
+		podaci, err = os.ReadFile("../Projekat/Spojeno/Data/Konfiguracije/podaci.txt")
+		if err != nil {
+			panic(err)
+		}
+	}
 	broj := -5
 	if err != nil {
 		default_konfig(&engine)
@@ -403,7 +415,10 @@ func menu(engine *Engine) {
 				novi_pod := strconv.Itoa(engine.levelBloom) + "\n" + strconv.Itoa(engine.indexBloom)
 				file, err := os.OpenFile("Data/Konfiguracije/podaci.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 				if err != nil {
-					panic(err)
+					file, err = os.OpenFile("../Projekat/Spojeno/Data/Konfiguracije/podaci.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+					if err != nil {
+						panic(err)
+					}
 				}
 				file.WriteString(novi_pod)
 				file.Close()
