@@ -32,7 +32,7 @@ func DoRangeScan(min string, maks string, velicina int, broj int, kljucevi_memta
 	potrebni_kljucevi := make([]string, 0)
 	indeks := velicina * (broj - 1)
 	for i := indeks; i < indeks+velicina; i++ {
-		if i < len(potrebni_kljucevi) {
+		if i < len(kljucevi) {
 			potrebni_kljucevi = append(potrebni_kljucevi, kljucevi[i])
 		}
 	}
