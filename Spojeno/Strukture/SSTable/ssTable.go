@@ -284,6 +284,7 @@ func NapraviSSTableJedanFajl(lCvor []*SkipList.SkipListNode, level int, index in
 }
 
 func Svi_kljucevi_jednog_fajla_jedan_fajl(f *os.File) []string {
+
 	size := make([]byte, 8)
 	f.Read(size)
 	keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
@@ -294,6 +295,7 @@ func Svi_kljucevi_jednog_fajla_jedan_fajl(f *os.File) []string {
 	keySize = binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
 	key_read = make([]byte, keySize)
 	f.Read(key_read)
+	key2 := string(key_read) //poslednji kljuc
 	var kljucevi []string
 	for true {
 		size := make([]byte, 8)
@@ -304,8 +306,11 @@ func Svi_kljucevi_jednog_fajla_jedan_fajl(f *os.File) []string {
 		keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
 		key_read := make([]byte, keySize)
 		f.Read(key_read)
-		key := string(key_read)
-		kljucevi = append(kljucevi, key)
+		kljucic := string(key_read)
+		kljucevi = append(kljucevi, kljucic)
+		if kljucic == key2 {
+			return kljucevi
+		}
 		of := make([]byte, 8)
 		f.Read(of)
 	}
