@@ -183,7 +183,7 @@ func menu(engine *Engine) {
 		unos = strings.Replace(unos, "\r", "", 1)
 		switch unos {
 		case "k":
-			SSTable.Kompakcija(engine.indexBloom-1, engine.levelBloom, 1, 10)
+			SSTable.Kompakcija(engine.indexBloom, engine.levelBloom, 1, 10)
 			break
 		case "1":
 			key, value := nabavi_vrednosti_dodavanje()
@@ -275,7 +275,13 @@ func menu(engine *Engine) {
 			for i := range index_files {
 				indFile, err := os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
 				if err != nil {
-					panic(err)
+					path1, _ = filepath.Abs("../Projekat/Spojeno/Data/SSTableData")
+					path = strings.ReplaceAll(path1, `\`, "/")
+					_, _, index_files, _, _ = citanje.Svi_fajlovi(path)
+					indFile, err = os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
+					if err!=nil{
+						panic(err)
+					}
 				}
 				kljucevi = append(kljucevi, SSTable.Svi_kljucevi_jednog_fajla(indFile)...)
 			}
@@ -409,7 +415,10 @@ func menu(engine *Engine) {
 				novi_pod := strconv.Itoa(engine.levelBloom) + "\n" + strconv.Itoa(engine.indexBloom)
 				file, err := os.OpenFile("Data/Konfiguracije/podaci.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 				if err != nil {
-					panic(err)
+					file, err = os.OpenFile("../Projekat/Spojeno/Data/Konfiguracije/podaci.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+					if err!=nil{
+						panic(err)
+					}
 				}
 				file.WriteString(novi_pod)
 				file.Close()
@@ -562,7 +571,12 @@ func addCms(engine *Engine) {
 	path := strings.ReplaceAll(path1, `\`, "/")
 	file_cms, errData := os.OpenFile(path+"/cms.txt", os.O_CREATE|os.O_WRONLY, 0777)
 	if errData != nil {
-		panic(errData)
+		path1, _ = filepath.Abs("../Projekat/Spojeno/Data")
+		path = strings.ReplaceAll(path1, `\`, "/")
+		file_cms, errData = os.OpenFile(path+"/cms.txt", os.O_CREATE|os.O_WRONLY, 0777)
+		if errData != nil {
+			panic(errData)
+		}
 	}
 	file_cms.Write(bajtovi)
 	// os.WriteFile("Strukture//CountMinSketch//cms.txt", bajtovi,os.O_RDWR
@@ -613,7 +627,12 @@ func addHll(engine *Engine) {
 	path := strings.ReplaceAll(path1, `\`, "/")
 	file_hll, errData := os.OpenFile(path+"/hll.txt", os.O_CREATE|os.O_WRONLY, 0777)
 	if errData != nil {
-		panic(errData)
+		path1, _ = filepath.Abs("../Projekat/Spojeno/Data")
+		path = strings.ReplaceAll(path1, `\`, "/")
+		file_hll, errData = os.OpenFile(path+"/hll.txt", os.O_CREATE|os.O_WRONLY, 0777)
+		if errData != nil {
+			panic(errData)
+		}
 	}
 	file_hll.Write(bajtovi)
 	fmt.Println("Element je uspesno dodat u hll!")
