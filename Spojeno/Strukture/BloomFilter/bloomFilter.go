@@ -71,6 +71,18 @@ func AddNovi(key string, filename string) bool {
 	return true
 }
 
+func AddMain(key string, filename string) bool {
+	bloom := DeserijalizacijaMain(filename)
+	bytes := bloom.bytes
+
+	for j := 0; j < len(bloom.Hashes); j++ {
+		bytes[bloom.Hashes[j].Hash(key, int(bloom.m))] = 1
+	}
+	bloom.bytes = bytes
+	SerijalizacijaMain(bloom, filename)
+	return true
+}
+
 func Find(kljuc string, fajl string) bool {
 	bloom := Deserijalizacija(fajl)
 	bytes := bloom.bytes
@@ -182,13 +194,13 @@ func Deserijalizacija(str string) *BloomFilter {
 	bloom := BloomFilter{}
 	file, err := os.OpenFile(str, os.O_RDWR, 0666)
 	if err != nil {
-		
+
 		path1, _ := filepath.Abs("../Projekat/Spojeno/Data")
 		path := strings.ReplaceAll(path1, `\`, "/")
 		l := strconv.Itoa(bloom.Level + 1)
 		i := strconv.Itoa(bloom.Index + 1)
 		file, err := os.OpenFile(path+"/SSTableData/filterFileL"+l+"Id"+i+".db", os.O_CREATE|os.O_RDWR, 0666)
-		if err!=nil {
+		if err != nil {
 			panic(err)
 		}
 		decoder := gob.NewDecoder(file)
@@ -246,6 +258,66 @@ func DeserijalizacijaNova(niz []byte) *BloomFilter {
 	f.Close()
 	return &bloom
 
+}
+
+func SerijalizacijaMain(bloom *BloomFilter, str string) {
+	path1, _ := filepath.Abs("../Spojeno/Strukture/BloomFilter")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	file, err := os.OpenFile(path+"/"+str, os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		path1, _ := filepath.Abs("../Projekat/Spojeno/Strukture/BloomFilter")
+		path := strings.ReplaceAll(path1, `\`, "/")
+		file, err := os.OpenFile(path+"/"+str, os.O_CREATE|os.O_RDWR, 0666)
+		if err != nil {
+			panic(err)
+		}
+		encoder := gob.NewEncoder(file)
+		err = encoder.Encode(&bloom)
+		if err != nil {
+			panic(err)
+		}
+		file.Close()
+		return
+	}
+	encoder := gob.NewEncoder(file)
+	err = encoder.Encode(&bloom)
+	if err != nil {
+		panic(err)
+	}
+	file.Close()
+}
+
+func DeserijalizacijaMain(str string) *BloomFilter {
+	path1, _ := filepath.Abs("../Spojeno/Strukture/BloomFilter")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	bloom := BloomFilter{}
+	file, err := os.OpenFile(path+"/"+str, os.O_RDWR, 0666)
+	if err != nil {
+		path1, _ := filepath.Abs("../Projekat/Spojeno/Strukture/BloomFilter")
+		path := strings.ReplaceAll(path1, `\`, "/")
+		file, err := os.OpenFile(path+"/"+str, os.O_CREATE|os.O_RDWR, 0666)
+		if err != nil {
+			panic(err)
+		}
+		decoder := gob.NewDecoder(file)
+		_ = decoder.Decode(&bloom)
+		// if err != nil {
+		// 	panic(err)
+		// }
+		hashes := Make_hashes(bloom.k, bloom.m)
+		bloom.Hashes = hashes
+		file.Close()
+		return &bloom
+	}
+	decoder := gob.NewDecoder(file)
+	_ = decoder.Decode(&bloom)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	hashes := Make_hashes(bloom.k, bloom.m)
+	bloom.Hashes = hashes
+	file.Close()
+	return &bloom
 }
 
 func CalculateM(expectedElements int, falsePositiveRate float64) uint {

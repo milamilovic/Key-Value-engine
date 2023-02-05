@@ -43,6 +43,7 @@ type Engine struct {
 	levelBloom      int
 	simHashevi      map[string]string
 	simHashKljucevi []string
+	bloom_kljucevi  []string
 }
 
 func default_konfig(engine *Engine) {
@@ -457,7 +458,7 @@ func menu(engine *Engine) {
 			var trazeni_kljucevi []string
 			if engine.konfiguracije["da_li_je_vise_fajlova"] == 1 {
 				trazeni_kljucevi = RangeScan.DoRangeScan(kljuc1, kljuc2, int(velicina), int(redni_broj), kljucevi_memtable)
-			} else{
+			} else {
 				trazeni_kljucevi = RangeScan.DoRangeScanJedanFajl(kljuc1, kljuc2, int(velicina), int(redni_broj), kljucevi_memtable)
 			}
 			vrednosti := make([][]byte, len(trazeni_kljucevi))
@@ -465,9 +466,9 @@ func menu(engine *Engine) {
 				if engine.da_li_je_skip {
 					var value []byte
 					if engine.konfiguracije["da_li_je_vise_fajlova"] == 1 {
-					_, value = citanje.CitajSkip(trazeni_kljucevi[i], engine.mems, engine.cache)
-					} else {						
-					_, value = citanje.CitajSkipJedanFajl(trazeni_kljucevi[i], engine.mems, engine.cache)
+						_, value = citanje.CitajSkip(trazeni_kljucevi[i], engine.mems, engine.cache)
+					} else {
+						_, value = citanje.CitajSkipJedanFajl(trazeni_kljucevi[i], engine.mems, engine.cache)
 					}
 					vrednosti[i] = value
 				} else {
@@ -543,6 +544,9 @@ func desetPlusMeni(engine *Engine) {
 		fmt.Println("6:PROCENA IZ HLL")
 		fmt.Println("7:NAPRAVI SIM HASH")
 		fmt.Println("8:UPOREDI DVA SIM HASH")
+		fmt.Println("9:NAPRAVI BLOOM")
+		fmt.Println("10:DODAJ U BLOOM")
+		fmt.Println("11:CITAJ IZ BLOOMA")
 		fmt.Println("x:povratak na obican meni")
 		fmt.Println("Unesite broj ispred zeljene opcije")
 		r := bufio.NewReader(os.Stdin)
@@ -582,6 +586,15 @@ func desetPlusMeni(engine *Engine) {
 			break
 		case "8":
 			SimHashDistance(engine)
+			break
+		case "9":
+			MakeBloom(engine)
+			break
+		case "10":
+			AddBloom(engine)
+			break
+		case "11":
+			FindBloom(engine)
 			break
 		case "x":
 			b = false
@@ -757,4 +770,58 @@ func makeHll(engine *Engine) {
 	engine.hll_pokaz[kljuc] = hll
 	engine.cms_podaci[kljuc] = hll.Reg
 	engine.hll = append(engine.hll, kljuc)
+}
+
+func MakeBloom(engine *Engine) {
+	fmt.Println("Unesite vrednost kljuca pod kojim je bloom filter: ")
+	kljuc := nabavi_vrednosti_brisanje()
+	ime_fajla := "bloom_" + kljuc + ".txt"
+	bloom := BloomFilter.New_bloom(500000, 0.01, 1, 1)
+	engine.bloom_kljucevi = append(engine.bloom_kljucevi, kljuc)
+	BloomFilter.SerijalizacijaMain(bloom, ime_fajla)
+}
+
+func AddBloom(engine *Engine) {
+	fmt.Println("Unesite vrednost kljuca pod kojim je bloom filter: ")
+	kljuc_bloom := nabavi_vrednosti_brisanje()
+	prisutan := false
+	for i := 0; i < len(engine.bloom_kljucevi); i++ {
+		if kljuc_bloom == engine.bloom_kljucevi[i] {
+			prisutan = true
+		}
+	}
+	if !prisutan {
+		fmt.Println("Bloom filter pod ovim kljucem ne postoji!")
+		return
+	}
+	ime_fajla := "bloom_" + kljuc_bloom + ".txt"
+	fmt.Println("Unesite vrednost kljuca koju zelite da unesete u bloom filter: ")
+	kljuc := nabavi_vrednosti_brisanje()
+	BloomFilter.AddMain(kljuc, ime_fajla)
+	fmt.Println("Kljuc je uspesno dodat u bloom filter!")
+}
+
+func FindBloom(engine *Engine) {
+	fmt.Println("Unesite vrednost kljuca pod kojim je bloom filter: ")
+	kljuc_bloom := nabavi_vrednosti_brisanje()
+	prisutan := false
+	for i := 0; i < len(engine.bloom_kljucevi); i++ {
+		if kljuc_bloom == engine.bloom_kljucevi[i] {
+			prisutan = true
+		}
+	}
+	if !prisutan {
+		fmt.Println("Bloom filter pod ovim kljucem ne postoji!")
+		return
+	}
+	ime_fajla := "bloom_" + kljuc_bloom + ".txt"
+	fmt.Println("Unesite vrednost kljuca koju zelite da pretrazite u bloom filter: ")
+	kljuc := nabavi_vrednosti_brisanje()
+	bloom := BloomFilter.DeserijalizacijaMain(ime_fajla)
+	pronadjen_kljuc := bloom.FindNovi(kljuc)
+	if pronadjen_kljuc == true {
+		fmt.Println("Kljuc se mozda nalazi u bloom filteru")
+	} else {
+		fmt.Println("Kljuc se ne nalazi u bloom filteru")
+	}
 }
