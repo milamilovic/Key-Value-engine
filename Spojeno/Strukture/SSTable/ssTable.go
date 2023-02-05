@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"hash/crc32"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -387,4 +388,244 @@ func Svi_kljucevi_jednog_fajla(f *os.File) []string {
 
 	}
 	return kljucevi
+}
+
+func Kompakcija(brojFajlova int, maxLevel int, level int, maxBloom int) {
+	path1, _ := filepath.Abs("../Spojeno/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	br := 0
+	for br < brojFajlova-1 {
+		skipList := SkipList.NapraviSkipList(10) //velicina koja
+		br++
+		bloom := BloomFilter.New_bloom(2*maxBloom, 0.05, level+1, br)
+		l := strconv.Itoa(bloom.Level)
+		i := strconv.Itoa(bloom.Index + 1)
+		f1, err := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
+			"Id"+strconv.Itoa(br)+".db", os.O_RDONLY, 0777)
+		if err != nil {
+			panic(err)
+		}
+		br++
+		f2, err := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
+			"Id"+strconv.Itoa(br)+".db", os.O_RDONLY, 0777)
+		if err != nil {
+			panic(err)
+		}
+		for {
+			_, time1, tomb1, key_s1, val_s1, key1, val1, end1 := GetData(f1)
+			_, time2, tomb2, key_s2, val_s2, key2, val2, end2 := GetData(f2)
+			if end1 == false {
+				f1.Seek(-(4 + 8 + 1 + 8 + 8 + int64(key_s1) + int64(val_s1)), 1)
+				break
+			}
+			if end2 == false {
+				f1.Seek(-(4 + 8 + 1 + 8 + 8 + int64(key_s2) + int64(val_s2)), 1)
+				break
+			}
+
+			if key1 == key2 {
+				if tomb1[0] == tomb2[0] && tomb1[0] != 1 { //ne upisujemo ako je obrisan
+					if time1 < time2 {
+						skipList.Add(key2, val2)
+						BloomFilter.Add(key2, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
+
+					} else if time1 > time2 {
+						skipList.Add(key1, val1)
+						BloomFilter.Add(key1, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
+
+					} else {
+						skipList.Add(key1, val1)
+						BloomFilter.Add(key1, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
+
+					}
+				}
+			} else if key1 > key2 {
+				if tomb2[0] != 1 {
+					skipList.Add(key2, val2)
+					BloomFilter.Add(key2, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
+
+				}
+				f1.Seek(int64(4+8+1+8+8+key_s1+val_s1), 1)
+
+			} else {
+				if tomb1[0] != 1 {
+					skipList.Add(key1, val1)
+					BloomFilter.Add(key1, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
+
+				}
+				f2.Seek(int64(4+8+1+8+8+key_s2+val_s2), 1)
+			}
+		}
+		for {
+			_, _, _, key_s1, val_s1, key1, val1, end1 := GetData(f1)
+			if end1 == true {
+				break
+			}
+			skipList.Add(key1, val1)
+			f1.Seek(int64(4+8+1+8+8+key_s1+val_s1), 1)
+		}
+
+		for {
+			_, _, _, key_s2, val_s2, key2, val2, end2 := GetData(f2)
+			if end2 == true {
+				break
+			}
+			skipList.Add(key2, val2)
+			f1.Seek(int64(4+8+1+8+8+key_s2+val_s2), 1)
+		}
+
+		f1.Close()
+		f2.Close()
+		ObrisiFajlove(level, br)
+		index := NovoImeFajla(level + 1)
+		newData := skipList.GetElements()
+		NapraviSSTable(newData, level+1, index)
+		NapraviTOC(level+1, index)
+	}
+	index := NovoImeFajla(level + 1)
+	if index == brojFajlova {
+		if (level + 1) < maxLevel {
+			Kompakcija(brojFajlova, maxLevel, level+1, 2*maxBloom)
+		}
+	}
+}
+func NapraviTOC(level int, index int) {
+	path1, _ := filepath.Abs("../Spojeno/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	tocFile, err := os.OpenFile(path+"/TOCFiles/TocFileL"+strconv.Itoa(level)+
+		"Id"+strconv.Itoa(index-1)+".db", os.O_CREATE|os.O_WRONLY, 0777)
+	if err != nil {
+		panic(err)
+	}
+	_, er := tocFile.Write([]byte(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index-1) + ".db"))
+	if er != nil {
+		panic(er)
+	}
+	_, er = tocFile.Write([]byte(path + "/SSTableData/IndexFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index-1) + ".db"))
+	if er != nil {
+		panic(er)
+	}
+	_, er = tocFile.Write([]byte(path + "/SSTableData/SummaryFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index-1) + ".db"))
+	if er != nil {
+		panic(er)
+	}
+	_, er = tocFile.Write([]byte(path + "/SSTableData/FilterFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index-1) + ".txt"))
+	if er != nil {
+		panic(er)
+	}
+	_, er = tocFile.Write([]byte(path + "/SSTableData/MetaDataL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index) + ".txt"))
+	if er != nil {
+		panic(er)
+	}
+	tocFile.Close()
+
+}
+
+func ObrisiFajlove(level int, index int) {
+	path1, _ := filepath.Abs("../Spojeno/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	err1 := os.Remove(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index) + ".db")
+	if err1 != nil {
+		panic(err1)
+	}
+	fmt.Println(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index-1) + ".db")
+	err2 := os.Remove(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index-1) + ".db")
+	if err2 != nil {
+		panic(err1)
+	}
+
+	err3 := os.Remove(path + "/SSTableData/IndexFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index) + ".db")
+	if err3 != nil {
+		panic(err3)
+	}
+	err4 := os.Remove(path + "/SSTableData/IndexFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index-1) + ".db")
+	if err4 != nil {
+		panic(err4)
+	}
+	err5 := os.Remove(path + "/SSTableData/SummaryFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index) + ".db")
+	if err5 != nil {
+		panic(err5)
+	}
+	err6 := os.Remove(path + "/SSTableData/SummaryFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index-1) + ".db")
+	if err6 != nil {
+		panic(err6)
+	}
+	err7 := os.Remove(path + "/SSTableData/FilterFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index) + ".txt")
+	if err7 != nil {
+		panic(err7)
+	}
+	err8 := os.Remove(path + "/SSTableData/FilterFileL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index-1) + ".txt")
+	if err8 != nil {
+		panic(err8)
+	}
+	err9 := os.Remove(path + "/SSTableData/MetaDataL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index) + ".txt")
+	if err9 != nil {
+		panic(err7)
+	}
+	err10 := os.Remove(path + "/SSTableData/MetaDataL" + strconv.Itoa(level) +
+		"Id" + strconv.Itoa(index-1) + ".txt")
+	if err10 != nil {
+		panic(err8)
+	}
+
+}
+
+func NovoImeFajla(level int) int {
+	path1, _ := filepath.Abs("../Spojeno/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	br := 1
+	for {
+		f, err := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
+			"Id"+strconv.Itoa(br)+".db", os.O_RDONLY, 0777)
+		if err != nil { //nema takvog fajla, moze da bude novi
+			f.Close()
+			return br
+		}
+		br++
+	}
+
+}
+
+func GetData(f *os.File) (uint32, uint64, []byte, uint64, uint64, string, []byte, bool) {
+
+	size := make([]byte, 4)
+	_, err := f.Read(size)
+	if err == io.EOF {
+		return 0, 0, nil, 0, 0, "", nil, true
+	}
+	crc := binary.LittleEndian.Uint32(size)
+	size = make([]byte, 8)
+	f.Read(size)
+	time := binary.LittleEndian.Uint64(size)
+	tomb := make([]byte, 1)
+	f.Read(tomb)
+	size = make([]byte, 8)
+	f.Read(size)
+	keySize := binary.LittleEndian.Uint64(size)
+	size = make([]byte, 8)
+	f.Read(size)
+	valueSize := binary.LittleEndian.Uint64(size)
+	key := make([]byte, keySize)
+	f.Read(key)
+	key_s := string(key)
+	val := make([]byte, valueSize)
+	f.Read(val)
+
+	return crc, time, tomb, keySize, valueSize, key_s, val, false
+
 }

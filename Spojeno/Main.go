@@ -174,6 +174,7 @@ func menu(engine *Engine) {
 		fmt.Println("4:LIST")
 		fmt.Println("5:RANGE SCAN")
 		fmt.Println("6:10+")
+		fmt.Println("k:Kompakcija")
 		fmt.Println("x:kraj programa")
 		fmt.Println("Unesite broj ispred zeljene opcije")
 		r := bufio.NewReader(os.Stdin)
@@ -181,6 +182,9 @@ func menu(engine *Engine) {
 		unos = strings.Replace(unos, "\n", "", 1)
 		unos = strings.Replace(unos, "\r", "", 1)
 		switch unos {
+		case "k":
+			SSTable.Kompakcija(engine.indexBloom-1, engine.levelBloom, 1, 10)
+			break
 		case "1":
 			key, value := nabavi_vrednosti_dodavanje()
 			if engine.da_li_je_skip {

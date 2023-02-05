@@ -128,6 +128,7 @@ func Serijalizacija(bloom *BloomFilter) {
 	if err != nil {
 		panic(err)
 	}
+	file.Close()
 }
 func SerijalizacijaNova(bloom *BloomFilter) {
 
@@ -144,6 +145,7 @@ func SerijalizacijaNova(bloom *BloomFilter) {
 	if err != nil {
 		panic(err)
 	}
+	file.Close()
 }
 
 func Deserijalizacija(str string) *BloomFilter {
@@ -161,6 +163,7 @@ func Deserijalizacija(str string) *BloomFilter {
 	// }
 	hashes := Make_hashes(bloom.k, bloom.m)
 	bloom.Hashes = hashes
+	file.Close()
 	return &bloom
 }
 func DeserijalizacijaNova(niz []byte) *BloomFilter {
@@ -179,6 +182,7 @@ func DeserijalizacijaNova(niz []byte) *BloomFilter {
 	// }
 	hashes := Make_hashes(bloom.k, bloom.m)
 	bloom.Hashes = hashes
+	f.Close()
 	return &bloom
 
 }
