@@ -17,20 +17,35 @@ import (
 func NapraviSSTable(lCvor []*SkipList.SkipListNode, level int, index int) {
 	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
+	var datFile *os.File
 	datFile, errData := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if errData != nil {
-		panic(errData)
+		path1, _ = filepath.Abs("../Projekat/Spojeno/Data")
+		path = strings.ReplaceAll(path1, `\`, "/")
+		datFile, errData = os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
+			"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
+		if errData != nil {
+			panic(errData)
+		}
 	}
 	indFile, errInd := os.OpenFile(path+"/SSTableData/IndexFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if errInd != nil {
-		panic(errInd)
+		indFile, errInd = os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
+			"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
+		if errInd != nil {
+			panic(errInd)
+		}
 	}
 	sumFile, errSum := os.OpenFile(path+"/SSTableData/SummaryFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if errSum != nil {
-		panic(errInd)
+		sumFile, errSum = os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
+			"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
+		if errSum != nil {
+			panic(errData)
+		}
 	}
 	var offsetInd uint64 = 0
 	stringovi := []string{}
@@ -173,10 +188,17 @@ func NadjiElement(offset uint64, f *os.File, kljuc string) (bool, []byte) {
 func NapraviSSTableJedanFajl(lCvor []*SkipList.SkipListNode, level int, index int) {
 	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
+	var datFile *os.File
 	datFile, errData := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if errData != nil {
-		panic(errData)
+		path1, _ = filepath.Abs("../Projekat/Spojeno/Data")
+		path = strings.ReplaceAll(path1, `\`, "/")
+		datFile, errData = os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
+			"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
+		if errData != nil {
+			panic(errData)
+		}
 	}
 	var offsetInd int = 0
 	stringovi := []string{}
@@ -483,7 +505,13 @@ func NapraviTOC(level int, index int) {
 	tocFile, err := os.OpenFile(path+"/TOCFiles/TocFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index-1)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
-		panic(err)
+		path1, _ = filepath.Abs("../Projekat/Spojeno/Data")
+		path = strings.ReplaceAll(path1, `\`, "/")
+		tocFile, err = os.OpenFile(path+"/TOCFiles/TocFileL"+strconv.Itoa(level)+
+			"Id"+strconv.Itoa(index-1)+".db", os.O_CREATE|os.O_WRONLY, 0777)
+		if err != nil {
+			panic(err)
+		}
 	}
 	_, er := tocFile.Write([]byte(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index-1) + ".db"))
@@ -520,7 +548,13 @@ func ObrisiFajlove(level int, index int) {
 	err1 := os.Remove(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index) + ".db")
 	if err1 != nil {
-		panic(err1)
+		path1, _ = filepath.Abs("../Projekat/Spojeno/Data")
+		path = strings.ReplaceAll(path1, `\`, "/")
+		err1 = os.Remove(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
+			"Id" + strconv.Itoa(index) + ".db")
+		if err1 != nil {
+			panic(err1)
+		}
 	}
 	fmt.Println(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
 		"Id" + strconv.Itoa(index-1) + ".db")
