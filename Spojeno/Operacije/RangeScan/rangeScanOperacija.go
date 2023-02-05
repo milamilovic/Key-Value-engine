@@ -47,19 +47,20 @@ func DoRangeScan(min string, maks string, velicina int, broj int, kljucevi_memta
 func DoRangeScanJedanFajl(min string, maks string, velicina int, broj int, kljucevi_memtable []string) []string {
 	path1, _ := filepath.Abs("../Spojeno/Data/SSTableData")
 	path := strings.ReplaceAll(path1, `\`, "/")
-	_, _, index_files, _, _ := citanje.Svi_fajlovi(path)
+	data_files, _, _, _, _ := citanje.Svi_fajlovi(path)
 	var kljucevi1 []string
-	for i := range index_files {
-		indFile, err := os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
+	for i := range data_files {
+		indFile, err := os.OpenFile(path+"/"+data_files[i], os.O_RDONLY, 0666)
 		if err != nil {
 			path1, _ = filepath.Abs("../Projekat/Spojeno/Data/SSTableData")
 			path = strings.ReplaceAll(path1, `\`, "/")
-			indFile, err = os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
+			indFile, err = os.OpenFile(path+"/"+data_files[i], os.O_RDONLY, 0666)
 			if err != nil {
 				panic(err)
 			}
 		}
-		kljucevi1 = append(kljucevi1, SSTable.Svi_kljucevi_jednog_fajla(indFile)...)
+		kljucevi_iz_fajla := SSTable.Svi_kljucevi_jednog_fajla_jedan_fajl(indFile)
+		kljucevi1 = append(kljucevi1, kljucevi_iz_fajla...)
 	}
 	kljucevi1 = append(kljucevi1, kljucevi_memtable...)
 	sort.Strings(kljucevi1)

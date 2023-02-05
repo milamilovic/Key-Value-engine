@@ -454,14 +454,29 @@ func menu(engine *Engine) {
 				fmt.Println("Niste uneli broj!")
 				break
 			}
-			trazeni_kljucevi := RangeScan.DoRangeScan(kljuc1, kljuc2, int(velicina), int(redni_broj), kljucevi_memtable)
+			var trazeni_kljucevi []string
+			if engine.konfiguracije["da_li_je_vise_fajlova"] == 1 {
+				trazeni_kljucevi = RangeScan.DoRangeScan(kljuc1, kljuc2, int(velicina), int(redni_broj), kljucevi_memtable)
+			} else{
+				trazeni_kljucevi = RangeScan.DoRangeScanJedanFajl(kljuc1, kljuc2, int(velicina), int(redni_broj), kljucevi_memtable)
+			}
 			vrednosti := make([][]byte, len(trazeni_kljucevi))
 			for i := 0; i < len(trazeni_kljucevi); i++ {
 				if engine.da_li_je_skip {
-					_, value := citanje.CitajSkip(trazeni_kljucevi[i], engine.mems, engine.cache)
+					var value []byte
+					if engine.konfiguracije["da_li_je_vise_fajlova"] == 1 {
+					_, value = citanje.CitajSkip(trazeni_kljucevi[i], engine.mems, engine.cache)
+					} else {						
+					_, value = citanje.CitajSkipJedanFajl(trazeni_kljucevi[i], engine.mems, engine.cache)
+					}
 					vrednosti[i] = value
 				} else {
-					_, value := citanje.CitajBTree(trazeni_kljucevi[i], engine.memb, engine.cache)
+					var value []byte
+					if engine.konfiguracije["da_li_je_vise_fajlova"] == 1 {
+						_, value = citanje.CitajBTree(trazeni_kljucevi[i], engine.memb, engine.cache)
+					} else {
+						_, value = citanje.CitajBTreeJedanFajl(trazeni_kljucevi[i], engine.memb, engine.cache)
+					}
 					vrednosti[i] = value
 				}
 			}
