@@ -172,7 +172,9 @@ func CitajBTree(kljuc string, memTable *MemTableBTree.MemTable, cache *Cache.Cac
 func Svi_fajlovi(folder string) ([]string, []string, []string, []string, []string) {
 	fajlovi, err := ioutil.ReadDir(folder)
 	if err != nil {
-		panic(err)
+		path1, _ := filepath.Abs("../Projekat/Spojeno/Data")
+		path := strings.ReplaceAll(path1, `\`, "/")
+		return Svi_fajlovi(path)
 	}
 	var svi []string
 	for _, file := range fajlovi {

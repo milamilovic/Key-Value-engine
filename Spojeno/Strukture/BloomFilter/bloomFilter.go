@@ -121,7 +121,21 @@ func Serijalizacija(bloom *BloomFilter) {
 	i := strconv.Itoa(bloom.Index)
 	file, err := os.OpenFile(path+"/SSTableData/filterFileL"+l+"Id"+i+".txt", os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
-		panic(err)
+		path1, _ := filepath.Abs("../Projekat/Spojeno/Data")
+		path := strings.ReplaceAll(path1, `\`, "/")
+		l := strconv.Itoa(bloom.Level)
+		i := strconv.Itoa(bloom.Index)
+		file, err := os.OpenFile(path+"/SSTableData/filterFileL"+l+"Id"+i+".txt", os.O_CREATE|os.O_RDWR, 0666)
+		if err != nil {
+			panic(err)
+		}
+		encoder := gob.NewEncoder(file)
+		err = encoder.Encode(&bloom)
+		if err != nil {
+			panic(err)
+		}
+		file.Close()
+		return
 	}
 	encoder := gob.NewEncoder(file)
 	err = encoder.Encode(&bloom)
@@ -138,7 +152,21 @@ func SerijalizacijaNova(bloom *BloomFilter) {
 	i := strconv.Itoa(bloom.Index + 1)
 	file, err := os.OpenFile(path+"/SSTableData/AllDataFileL"+l+"Id"+i+".db", os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
-		panic(err)
+		path1, _ := filepath.Abs("../Projekat/Spojeno/Data")
+		path := strings.ReplaceAll(path1, `\`, "/")
+		l := strconv.Itoa(bloom.Level + 1)
+		i := strconv.Itoa(bloom.Index + 1)
+		file, err := os.OpenFile(path+"/SSTableData/AllDataFileL"+l+"Id"+i+".db", os.O_CREATE|os.O_RDWR, 0666)
+		if err != nil {
+			panic(err)
+		}
+		encoder := gob.NewEncoder(file)
+		err = encoder.Encode(&bloom)
+		if err != nil {
+			panic(err)
+		}
+		file.Close()
+		return
 	}
 	encoder := gob.NewEncoder(file)
 	err = encoder.Encode(&bloom)
@@ -154,7 +182,24 @@ func Deserijalizacija(str string) *BloomFilter {
 	bloom := BloomFilter{}
 	file, err := os.OpenFile(str, os.O_RDWR, 0666)
 	if err != nil {
-		panic(err)
+		
+		path1, _ := filepath.Abs("../Projekat/Spojeno/Data")
+		path := strings.ReplaceAll(path1, `\`, "/")
+		l := strconv.Itoa(bloom.Level + 1)
+		i := strconv.Itoa(bloom.Index + 1)
+		file, err := os.OpenFile(path+"/SSTableData/filterFileL"+l+"Id"+i+".db", os.O_CREATE|os.O_RDWR, 0666)
+		if err!=nil {
+			panic(err)
+		}
+		decoder := gob.NewDecoder(file)
+		_ = decoder.Decode(&bloom)
+		// if err != nil {
+		// 	panic(err)
+		// }
+		hashes := Make_hashes(bloom.k, bloom.m)
+		bloom.Hashes = hashes
+		file.Close()
+		return &bloom
 	}
 	decoder := gob.NewDecoder(file)
 	_ = decoder.Decode(&bloom)
@@ -172,7 +217,23 @@ func DeserijalizacijaNova(niz []byte) *BloomFilter {
 	bloom := BloomFilter{}
 	f, err := os.OpenFile(path+"/SSTableData/BloomDes.db", os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
-		panic(err)
+		path1, _ := filepath.Abs("../Projekat/Spojeno/Data")
+		path := strings.ReplaceAll(path1, `\`, "/")
+		bloom := BloomFilter{}
+		f, err := os.OpenFile(path+"/SSTableData/BloomDes.db", os.O_CREATE|os.O_RDWR, 0666)
+		if err != nil {
+			panic(err)
+		}
+		f.Write(niz)
+		decoder := gob.NewDecoder(f)
+		_ = decoder.Decode(&bloom)
+		// if err != nil {
+		// 	panic(err)
+		// }
+		hashes := Make_hashes(bloom.k, bloom.m)
+		bloom.Hashes = hashes
+		f.Close()
+		return &bloom
 	}
 	f.Write(niz)
 	decoder := gob.NewDecoder(f)
