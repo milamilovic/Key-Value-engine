@@ -117,7 +117,12 @@ func CitajBTree(kljuc string, memTable *MemTableBTree.MemTable, cache *Cache.Cac
 						if filterBr == sumBr {
 							sumFile, err := os.OpenFile(path+"/SSTableData/"+sFajl, os.O_RDONLY, 0777)
 							if err != nil {
-								panic(err)
+								path1, _ = filepath.Abs("../Projekat/Spojeno/Data")
+								path = strings.ReplaceAll(path1, `\`, "/")
+								sumFile, err = os.OpenFile(path+"/SSTableData/"+sFajl, os.O_RDONLY, 0777)
+								if err != nil {
+									panic(err)
+								}
 							}
 							b := SSTable.NadjiSummary(kljuc, sumFile)
 							if b {

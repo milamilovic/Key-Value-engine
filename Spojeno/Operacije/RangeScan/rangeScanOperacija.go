@@ -17,7 +17,12 @@ func DoRangeScan(min string, maks string, velicina int, broj int, kljucevi_memta
 	for i := range index_files {
 		indFile, err := os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
 		if err != nil {
-			panic(err)
+			path1, _ = filepath.Abs("../Projekat/Spojeno/Data/SSTableData")
+			path = strings.ReplaceAll(path1, `\`, "/")
+			indFile, err = os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
+			if err != nil {
+				panic(err)
+			}
 		}
 		kljucevi1 = append(kljucevi1, SSTable.Svi_kljucevi_jednog_fajla(indFile)...)
 	}
@@ -47,7 +52,12 @@ func DoRangeScanJedanFajl(min string, maks string, velicina int, broj int, kljuc
 	for i := range index_files {
 		indFile, err := os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
 		if err != nil {
-			panic(err)
+			path1, _ = filepath.Abs("../Projekat/Spojeno/Data/SSTableData")
+			path = strings.ReplaceAll(path1, `\`, "/")
+			indFile, err = os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
+			if err != nil {
+				panic(err)
+			}
 		}
 		kljucevi1 = append(kljucevi1, SSTable.Svi_kljucevi_jednog_fajla(indFile)...)
 	}
