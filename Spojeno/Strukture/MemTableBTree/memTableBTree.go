@@ -80,11 +80,11 @@ func (memTable *MemTable) ProveriFlush() (bool, int) {
 	}
 }
 
-func (memTable *MemTable) Flush(i int, j int) {
-	memTable.NapraviSSTable(i, j)
+func (memTable *MemTable) Flush(l int, i int, j int) {
+	memTable.NapraviSSTable(l, i, j)
 }
 
-func (memTable *MemTable) NapraviSSTable(i int, j int) {
+func (memTable *MemTable) NapraviSSTable(l int, i int, j int) {
 	sl := SkipList.NapraviSkipList(nizSize)
 	for _, elem := range Niz {
 
@@ -93,8 +93,8 @@ func (memTable *MemTable) NapraviSSTable(i int, j int) {
 	}
 	//SSTable.NapraviSSTable(sl.GetElements(), 1, i)
 	if j != 1 {
-		SSTable.NapraviSSTableJedanFajl(sl.GetElements(), 1, i)
+		SSTable.NapraviSSTableJedanFajl(sl.GetElements(), l, i)
 	} else {
-		SSTable.NapraviSSTable(sl.GetElements(), 1, i)
+		SSTable.NapraviSSTable(sl.GetElements(), l, i)
 	}
 }

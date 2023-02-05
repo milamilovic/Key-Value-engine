@@ -72,14 +72,14 @@ func (memTable *MemTable) ProveriFlush() (bool, int) {
 	}
 }
 
-func (memTable *MemTable) Flush(i int, j int) {
-	memTable.NapraviSSTable(i, j)
+func (memTable *MemTable) Flush(l int, i int, j int) {
+	memTable.NapraviSSTable(l, i, j)
 }
 
-func (memTable *MemTable) NapraviSSTable(i int, j int) {
+func (memTable *MemTable) NapraviSSTable(l int, i int, j int) {
 	if j != 1 {
-		SSTable.NapraviSSTableJedanFajl(memTable.Elementi.GetElements(), 1, i)
+		SSTable.NapraviSSTableJedanFajl(memTable.Elementi.GetElements(), l, i)
 	} else {
-		SSTable.NapraviSSTable(memTable.Elementi.GetElements(), 1, i)
+		SSTable.NapraviSSTable(memTable.Elementi.GetElements(), l, i)
 	}
 }

@@ -6,34 +6,6 @@ import (
 	"time"
 )
 
-// func main() {
-// 	skipList := MakeSkipList(15)
-// 	skipList.Add("5", []byte("a"))
-// 	skipList.Add("9", []byte("a"))
-// 	skipList.Add("1", []byte("a"))
-// 	skipList.Add("7", []byte("a"))
-// 	skipList.Add("1", []byte("ponovo isti kljuc"))
-// 	skipList.Add("4", []byte("a"))
-// 	b, _ := skipList.FindElement("1")
-// 	fmt.Println(b)
-// 	b, _ = skipList.FindElement("5")
-// 	fmt.Println(b)
-// 	b, _ = skipList.FindElement("7")
-// 	fmt.Println(b)
-// 	b, _ = skipList.FindElement("12") //ovo je false
-// 	fmt.Println(b)
-
-// 	skipList.LogDelete("4")
-// 	b, _ = skipList.FindElement("4") //false jer je logicki obrisan
-// 	fmt.Println(b)
-// 	skipList.LogDelete("4") //brisemo ga opet
-
-// 	skipList.Add("4", []byte("a"))   //postoji ali je obrisan pa ga azuriramo
-// 	b, _ = skipList.FindElement("4") //azurirano je pa je true
-// 	fmt.Println(b)
-
-// }
-
 type Node struct {
 	key       string
 	value     []byte
@@ -142,7 +114,7 @@ func (skipList *SkipList) Add(key string, value []byte) {
 			skipList.size++
 		}
 	} else {
-		fmt.Println("Postoji uneti kljuc")
+		//fmt.Println("Postoji uneti kljuc")
 	}
 
 }

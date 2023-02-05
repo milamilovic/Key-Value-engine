@@ -1,11 +1,9 @@
 package SSTable
 
 import (
-	"Strukture/BloomFilter"
 	"Strukture/MerkleTree"
 	"Strukture/SkipList"
 	"encoding/binary"
-	"fmt"
 	"hash/crc32"
 	"io"
 	"os"
@@ -140,7 +138,6 @@ func NadjiIndex(f *os.File, kljuc string, ima bool) (bool, uint64) {
 		key_read := make([]byte, keySize)
 		f.Read(key_read)
 		key := string(key_read)
-		fmt.Println(key)
 		of := make([]byte, 8)
 		f.Read(of)
 		offset := binary.LittleEndian.Uint64(of) //velicina offseta
@@ -210,34 +207,13 @@ func NapraviSSTableJedanFajl(lCvor []*SkipList.SkipListNode, level int, index in
 	last := make([]byte, 8)
 	last_u := uint64(len(lCvor[len(lCvor)-1].GetKey()))
 	binary.LittleEndian.PutUint64(last, last_u)
-	//for _, cvor := range lCvor {
-	//	BloomFilter.AddNovi(cvor.GetKey(), path+"/SSTableData/AllDataFileL"+strconv.Itoa(level)+"Id"+strconv.Itoa(index)+".db")
-	//}
+
 	datFile.Close()
 	datFile, errData = os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
 		"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if errData != nil {
 		panic(errData)
 	}
-	//bajt := make([]byte, 1)
-	//velicinaBloom := 0
-	//for {
-	//	_, err := datFile.Read(bajt)
-	//	if err != nil {
-	//		break
-	//	}
-	//	velicinaBloom++
-	//}
-	//fmt.Println(velicinaBloom)
-	//velicina, _ := datFile.Stat()
-	//velicinaBloom := velicina.Size()
-	//podaci := make([]byte, velicinaBloom)
-	//datFile.Read(podaci)
-	//datFile.Truncate(int64(velicinaBloom))
-	//velB := make([]byte, 8)
-	//binary.BigEndian.PutUint64(velB, uint64(velicinaBloom))
-	//datFile.Write(velB)   //upisana velicina blooma
-	//datFile.Write(podaci) //podaci iz blooma
 
 	datFile.Write(first) //summary
 	datFile.Write([]byte(lCvor[0].GetKey()))
@@ -306,90 +282,6 @@ func NapraviSSTableJedanFajl(lCvor []*SkipList.SkipListNode, level int, index in
 	datFile.Close()
 
 }
-func NadjiBloom(kljuc string, f *os.File) bool {
-	size := make([]byte, 8)
-	f.Read(size)
-	bloomSize := binary.LittleEndian.Uint64(size)
-	bl := make([]byte, bloomSize)
-	f.Read(bl) //procitani bajtovi blooma
-	bloomFilter := BloomFilter.DeserijalizacijaNova(bl)
-	nasao := bloomFilter.FindNovi(kljuc)
-	return nasao
-
-}
-func NadjiSummaryJedanFajl(kljuc string, f *os.File) bool {
-	size := make([]byte, 8)
-	f.Read(size)
-	keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
-	key_read := make([]byte, keySize)
-	f.Read(key_read)
-	key1 := string(key_read) //prvi kljuc
-	fmt.Println(key1)
-	size = make([]byte, 8)
-	f.Read(size)
-	keySize = binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
-	key_read = make([]byte, keySize)
-	f.Read(key_read)
-	key2 := string(key_read) //poslednji kljuc
-	if kljuc > key2 || kljuc < key1 {
-		return false
-	}
-	return true
-
-}
-
-func NadjiIndexJedanFajl(f *os.File, kljuc string) (bool, uint64) {
-	for true {
-		size := make([]byte, 8)
-		f.Read(size)
-		keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
-		key_read := make([]byte, keySize)
-		f.Read(key_read)
-		key := string(key_read)
-		fmt.Println(key)
-		of := make([]byte, 8)
-		f.Read(of)
-		offset := binary.LittleEndian.Uint64(of) //velicina offseta
-		if key == kljuc {
-			return true, offset
-		}
-		if key > kljuc {
-			return false, 0
-		}
-		if key < kljuc {
-			continue
-		}
-	}
-	return false, 0
-}
-
-func NadjiElementJedanFajl(offset uint64, f *os.File, kljuc string) (bool, []byte) {
-	f.Seek(int64(offset), 0)
-
-	bytes := make([]byte, 8)
-	f.Read(bytes)
-	bytes = make([]byte, 4)
-	f.Read(bytes)
-
-	t := make([]byte, 1)
-	f.Read(t)
-	if t[0] == 1 {
-		return false, nil
-	}
-	size := make([]byte, 8)
-	f.Read(size)
-	keySize := binary.LittleEndian.Uint64(size)
-	size = make([]byte, 8)
-	f.Read(size)
-	valueSize := binary.LittleEndian.Uint64(size)
-
-	key_read := make([]byte, keySize)
-	f.Read(key_read)
-	value_read := make([]byte, valueSize)
-	f.Read(value_read)
-	value := value_read
-	return true, value
-}
 
 func Svi_kljucevi_jednog_fajla(f *os.File) []string {
 	f.Seek(0, 0)
@@ -427,9 +319,6 @@ func Kompakcija(brojFajlova int, maxLevel int, level int, maxBloom int) {
 		}
 		for {
 			_, time1, tomb1, _, _, key1, val1, end1 := GetData(datFileGlavni)
-			fmt.Println(tomb1)
-			fmt.Println("Glavni kljuc")
-			fmt.Println(key1)
 			if end1 == true {
 				break
 			}
@@ -439,27 +328,22 @@ func Kompakcija(brojFajlova int, maxLevel int, level int, maxBloom int) {
 			br := 0
 			if tomb1[0] != 1 {
 				for br < brojFajlova-1 {
-					fmt.Println("Usao")
 					br++
 					if br == brGlavni {
 						continue
 					} else {
+
 						datFile, errData := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
 							"Id"+strconv.Itoa(br)+".db", os.O_RDONLY, 0777)
 						if errData != nil {
 							panic(errData)
 						}
-						fmt.Println("Cita drugi fajl")
-						fmt.Println("nije obrisan")
 						for {
 							_, time2, tomb2, _, _, key2, val2, end2 := GetData(datFile)
-							fmt.Println("Drugi")
-							fmt.Printf(key2)
 							if end2 == true {
 								break
 							}
 							if tomb2[0] == 1 {
-								fmt.Println("drugi jeste obrisan")
 								continue
 							} else {
 								if kljucMin == key2 {
@@ -467,43 +351,39 @@ func Kompakcija(brojFajlova int, maxLevel int, level int, maxBloom int) {
 										min = time2
 										kljucMin = key2
 										valMin = val2
-									} else {
-										min = time1
-										kljucMin = key1
-										valMin = val1
 									}
-								} else {
-									if tomb2[0] != 1 {
-										skipList.Add(key2, val2)
-									}
+								} //else {
+								//if tomb2[0] != 1 {
+								//	skipList.Add(key2, val2)
+								//}
 
-								}
+								//}
 
 							}
-							//datFile.Seek(4+8+1+8+8+int64(key_s2)+int64(val_s2), 1)
 						}
+
+						datFile.Close()
 					}
-					//datFile.Seek(4+8+1+8+8+int64(key_s1)+int64(val_s1), 1)
 				}
 
+				skipList.Add(kljucMin, valMin)
 			}
-
-			skipList.Add(kljucMin, valMin)
-			//datFileGlavni.Seek(4+8+1+8+8+int64(key_s1)+int64(val_s1), 1)
 		}
+		datFileGlavni.Close()
 	}
 
-	// ObrisiFajlove(level, br)
+	ObrisiFajlove(level, brGlavni)
 	index := NovoImeFajla(level + 1)
 	newData := skipList.GetElements()
 	NapraviSSTable(newData, level+1, index)
-	// NapraviTOC(level+1, index)
+	NapraviTOC(level+1, index)
 }
 func NapraviTOC(level int, index int) {
+
 	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
 	tocFile, err := os.OpenFile(path+"/TOCFiles/TocFileL"+strconv.Itoa(level)+
-		"Id"+strconv.Itoa(index-1)+".db", os.O_CREATE|os.O_WRONLY, 0777)
+		"Id"+strconv.Itoa(index)+".db", os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
 		path1, _ = filepath.Abs("../Projekat/Spojeno/Data")
 		path = strings.ReplaceAll(path1, `\`, "/")
@@ -542,67 +422,35 @@ func NapraviTOC(level int, index int) {
 
 }
 
-func ObrisiFajlove(level int, index int) {
+func ObrisiFajlove(level int, br_fajlova int) {
 	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
-	err1 := os.Remove(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
-		"Id" + strconv.Itoa(index) + ".db")
-	if err1 != nil {
-		path1, _ = filepath.Abs("../Projekat/Spojeno/Data")
-		path = strings.ReplaceAll(path1, `\`, "/")
-		err1 = os.Remove(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
-			"Id" + strconv.Itoa(index) + ".db")
+	for i := 0; i < br_fajlova; i++ {
+		err1 := os.Remove(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
+			"Id" + strconv.Itoa(i+1) + ".db")
 		if err1 != nil {
 			panic(err1)
 		}
-	}
-	fmt.Println(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
-		"Id" + strconv.Itoa(index-1) + ".db")
-	err2 := os.Remove(path + "/SSTableData/DataFileL" + strconv.Itoa(level) +
-		"Id" + strconv.Itoa(index-1) + ".db")
-	if err2 != nil {
-		panic(err1)
-	}
-
-	err3 := os.Remove(path + "/SSTableData/IndexFileL" + strconv.Itoa(level) +
-		"Id" + strconv.Itoa(index) + ".db")
-	if err3 != nil {
-		panic(err3)
-	}
-	err4 := os.Remove(path + "/SSTableData/IndexFileL" + strconv.Itoa(level) +
-		"Id" + strconv.Itoa(index-1) + ".db")
-	if err4 != nil {
-		panic(err4)
-	}
-	err5 := os.Remove(path + "/SSTableData/SummaryFileL" + strconv.Itoa(level) +
-		"Id" + strconv.Itoa(index) + ".db")
-	if err5 != nil {
-		panic(err5)
-	}
-	err6 := os.Remove(path + "/SSTableData/SummaryFileL" + strconv.Itoa(level) +
-		"Id" + strconv.Itoa(index-1) + ".db")
-	if err6 != nil {
-		panic(err6)
-	}
-	err7 := os.Remove(path + "/SSTableData/FilterFileL" + strconv.Itoa(level) +
-		"Id" + strconv.Itoa(index) + ".txt")
-	if err7 != nil {
-		panic(err7)
-	}
-	err8 := os.Remove(path + "/SSTableData/FilterFileL" + strconv.Itoa(level) +
-		"Id" + strconv.Itoa(index-1) + ".txt")
-	if err8 != nil {
-		panic(err8)
-	}
-	err9 := os.Remove(path + "/SSTableData/MetaDataL" + strconv.Itoa(level) +
-		"Id" + strconv.Itoa(index) + ".txt")
-	if err9 != nil {
-		panic(err7)
-	}
-	err10 := os.Remove(path + "/SSTableData/MetaDataL" + strconv.Itoa(level) +
-		"Id" + strconv.Itoa(index-1) + ".txt")
-	if err10 != nil {
-		panic(err8)
+		err1 = os.Remove(path + "/SSTableData/SummaryFileL" + strconv.Itoa(level) +
+			"Id" + strconv.Itoa(i+1) + ".db")
+		if err1 != nil {
+			panic(err1)
+		}
+		err1 = os.Remove(path + "/SSTableData/IndexFileL" + strconv.Itoa(level) +
+			"Id" + strconv.Itoa(i+1) + ".db")
+		if err1 != nil {
+			panic(err1)
+		}
+		err1 = os.Remove(path + "/SSTableData/filterFileL" + strconv.Itoa(level) +
+			"Id" + strconv.Itoa(i+1) + ".txt")
+		if err1 != nil {
+			panic(err1)
+		}
+		err1 = os.Remove(path + "/SSTableData/MetadataL" + strconv.Itoa(level) +
+			"Id" + strconv.Itoa(i+1) + ".txt")
+		if err1 != nil {
+			panic(err1)
+		}
 	}
 
 }

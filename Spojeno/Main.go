@@ -183,7 +183,9 @@ func menu(engine *Engine) {
 		unos = strings.Replace(unos, "\r", "", 1)
 		switch unos {
 		case "k":
-			SSTable.Kompakcija(engine.indexBloom, engine.levelBloom, 1, 10)
+			SSTable.Kompakcija(engine.indexBloom, 4, 1, 10)
+			//engine.levelBloom++
+			//engine.indexBloom = 1
 			break
 		case "1":
 			key, value := nabavi_vrednosti_dodavanje()
@@ -195,11 +197,11 @@ func menu(engine *Engine) {
 				}
 				b, _ := engine.mems.ProveriFlush()
 				if b {
-					engine.mems.Flush(engine.indexBloom, engine.konfiguracije["da_li_je_vise_fajlova"])
+					engine.mems.Flush(engine.levelBloom, engine.indexBloom, engine.konfiguracije["da_li_je_vise_fajlova"])
 					engine.indexBloom++
 					if engine.konfiguracije["da_li_je_vise_fajlova"] == 1 {
 						engine.bloom = nil
-						engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1), 1, engine.indexBloom)
+						engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1), engine.levelBloom, engine.indexBloom)
 					}
 					engine.mems = MemTableSkipList.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
 
@@ -212,11 +214,11 @@ func menu(engine *Engine) {
 				}
 				b, _ := engine.memb.ProveriFlush()
 				if b {
-					engine.memb.Flush(engine.indexBloom, engine.konfiguracije["da_li_je_vise_fajlova"])
+					engine.memb.Flush(engine.levelBloom, engine.indexBloom, engine.konfiguracije["da_li_je_vise_fajlova"])
 					engine.indexBloom++
 					if engine.konfiguracije["da_li_je_vise_fajlova"] == 1 {
 						engine.bloom = nil
-						engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1), 1, engine.indexBloom)
+						engine.bloom = BloomFilter.New_bloom(engine.konfiguracije["memtable_max_velicina"], float64(0.1), engine.levelBloom, engine.indexBloom)
 					}
 					engine.memb = MemTableBTree.KreirajMemTable(engine.konfiguracije["memtable_max_velicina"], engine.konfiguracije["memtable_max_velicina"])
 
@@ -279,7 +281,7 @@ func menu(engine *Engine) {
 					path = strings.ReplaceAll(path1, `\`, "/")
 					_, _, index_files, _, _ = citanje.Svi_fajlovi(path)
 					indFile, err = os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
-					if err!=nil{
+					if err != nil {
 						panic(err)
 					}
 				}
@@ -395,7 +397,7 @@ func menu(engine *Engine) {
 			if engine.da_li_je_skip {
 				b, velicina := engine.mems.ProveriFlush()
 				if b == false && velicina > 0 {
-					engine.mems.Flush(engine.indexBloom, engine.konfiguracije["da_li_je_vise_fajlova"])
+					engine.mems.Flush(engine.levelBloom, engine.indexBloom, engine.konfiguracije["da_li_je_vise_fajlova"])
 					engine.indexBloom++
 				}
 				novi_pod := strconv.Itoa(engine.levelBloom) + "\n" + strconv.Itoa(engine.indexBloom)
@@ -409,14 +411,14 @@ func menu(engine *Engine) {
 			} else {
 				b, velicina := engine.memb.ProveriFlush()
 				if b == false && velicina > 0 {
-					engine.memb.Flush(engine.indexBloom, engine.konfiguracije["da_li_je_vise_fajlova"])
+					engine.memb.Flush(engine.levelBloom, engine.indexBloom, engine.konfiguracije["da_li_je_vise_fajlova"])
 					engine.indexBloom++
 				}
 				novi_pod := strconv.Itoa(engine.levelBloom) + "\n" + strconv.Itoa(engine.indexBloom)
 				file, err := os.OpenFile("Data/Konfiguracije/podaci.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 				if err != nil {
 					file, err = os.OpenFile("../Projekat/Spojeno/Data/Konfiguracije/podaci.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-					if err!=nil{
+					if err != nil {
 						panic(err)
 					}
 				}

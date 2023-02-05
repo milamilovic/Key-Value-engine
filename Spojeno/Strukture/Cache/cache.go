@@ -81,7 +81,6 @@ func (dll *DoubleLinkedList) ObrisiCvor(node *CacheNode) {
 func (dll *DoubleLinkedList) PrintList() {
 	current := dll.head
 	for current != nil {
-		fmt.Print(current.key, " ")
 		current = current.next
 	}
 }

@@ -6,7 +6,6 @@ import (
 	"Strukture/MemTableBTree"
 	"Strukture/MemTableSkipList"
 	"Strukture/SSTable"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -32,7 +31,7 @@ func CitajSkip(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.C
 				filterBr++
 				b := BloomFilter.Find(kljuc, path+"/SSTableData/"+fFajl)
 				if b {
-					fmt.Println("Usao u summary fajlove")
+					//fmt.Println("Usao u summary fajlove")
 					sumBr := 0
 					for _, sFajl := range summary_files {
 						sumBr++
@@ -43,31 +42,31 @@ func CitajSkip(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.C
 							}
 							b := SSTable.NadjiSummary(kljuc, sumFile)
 							if b {
-								fmt.Println("Nasao u summary fajlu")
+								//fmt.Println("Nasao u summary fajlu")
 								indBr := 0
 								for _, iFajl := range index_files {
 									indBr++
 									if indBr == sumBr {
-										fmt.Println("Cita u indexu")
+										//fmt.Println("Cita u indexu")
 										indFile, err := os.OpenFile(path+"/SSTableData/"+iFajl, os.O_RDONLY, 0777)
 										if err != nil {
 											panic(err)
 										}
 										b, offset := SSTable.NadjiIndex(indFile, kljuc, true)
 										if b {
-											fmt.Println("Nasao u indexu")
+											//fmt.Println("Nasao u indexu")
 											datBr := 0
 											for _, dataFajl := range data_files {
 												datBr++
 												if datBr == indBr {
-													fmt.Println("Cita u data")
+													//fmt.Println("Cita u data")
 													dataFile, err := os.OpenFile(path+"/SSTableData/"+dataFajl, os.O_RDONLY, 0777)
 													if err != nil {
 														panic(err)
 													}
 													b, value := SSTable.NadjiElement(offset, dataFile, kljuc)
 													if b {
-														fmt.Println("Nasao u data")
+														//fmt.Println("Nasao u data")
 														return b, value
 
 													}
@@ -110,7 +109,7 @@ func CitajBTree(kljuc string, memTable *MemTableBTree.MemTable, cache *Cache.Cac
 				filterBr++
 				b := BloomFilter.Find(kljuc, path+"/SSTableData/"+fFajl)
 				if b {
-					fmt.Println("Usao u summary fajlove")
+					//fmt.Println("Usao u summary fajlove")
 					sumBr := 0
 					for _, sFajl := range summary_files {
 						sumBr++
@@ -126,31 +125,31 @@ func CitajBTree(kljuc string, memTable *MemTableBTree.MemTable, cache *Cache.Cac
 							}
 							b := SSTable.NadjiSummary(kljuc, sumFile)
 							if b {
-								fmt.Println("Nasao u summary fajlu")
+								//fmt.Println("Nasao u summary fajlu")
 								indBr := 0
 								for _, iFajl := range index_files {
 									indBr++
 									if indBr == sumBr {
-										fmt.Println("Cita u indexu")
+										//fmt.Println("Cita u indexu")
 										indFile, err := os.OpenFile(path+"/SSTableData/"+iFajl, os.O_RDONLY, 0777)
 										if err != nil {
 											panic(err)
 										}
 										b, offset := SSTable.NadjiIndex(indFile, kljuc, true)
 										if b {
-											fmt.Println("Nasao u indexu")
+											//fmt.Println("Nasao u indexu")
 											datBr := 0
 											for _, dataFajl := range data_files {
 												datBr++
 												if datBr == indBr {
-													fmt.Println("Cita u data")
+													//fmt.Println("Cita u data")
 													dataFile, err := os.OpenFile(path+"/SSTableData/"+dataFajl, os.O_RDONLY, 0777)
 													if err != nil {
 														panic(err)
 													}
 													b, value := SSTable.NadjiElement(offset, dataFile, kljuc)
 													if b {
-														fmt.Println("Nasao u data")
+														//fmt.Println("Nasao u data")
 														return b, value
 
 													}

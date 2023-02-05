@@ -33,28 +33,20 @@ func Svi_fajlovi(n int, folder string) ([]string, []string, []string, []string, 
 	if err != nil {
 		panic(err)
 	}
-	//for _, file := range fajlovi {
-	//	fmt.Println(file.Name(), file.IsDir())
 	var svi []string
 	for _, file := range fajlovi {
-		//fmt.Println(file.Name(), file.IsDir())
 		if file.IsDir() {
 			fajlovi1, err := ioutil.ReadDir(folder + "/" + file.Name())
 			if err != nil {
 				panic(err)
 			}
 			for _, file1 := range fajlovi1 {
-				//fmt.Println(file1.Name())
 				svi = append(svi, file1.Name())
 			}
 		} else {
-			//fmt.Println(file.Name())
 			svi = append(svi, file.Name())
 		}
 	}
-	//for f := range svi {
-	//	fmt.Println(svi[f])
-	//}
 	var data_files []string
 	var filter_files []string
 	var index_files []string

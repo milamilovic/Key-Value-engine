@@ -7,20 +7,6 @@ import (
 	"os"
 )
 
-// func main() {
-// 	stringovi := []string{"jedan", "dva", "dunja", "radi", "molim", "te"}
-// 	bajtovi := pretvori_u_bajtove(stringovi)
-// 	putanja := "merkl_stablo.bin"
-// 	root := kreiraj_MerkleTree(bajtovi, putanja)
-// 	current := root.root
-// 	//fmt.Println(current.data)
-// 	PrintTree(current)
-// 	fmt.Println("kraj")
-// 	//s := string([]byte{168, 172, 252, 187, 88, 100, 143, 55, 150, 169, 194, 202, 114, 144, 130, 172, 46, 174, 82, 212})
-// 	//fmt.Println(s)
-// 	// 201 39 65 161 143 33 36 76 108 235 51 252 66 112 43 66 230 11 217 13
-// }
-
 type Hash [20]byte //vrednost
 
 func (n Node) String() string {
@@ -28,7 +14,6 @@ func (n Node) String() string {
 }
 
 func hash(podaci []byte) Hash {
-	//fmt.Println(podaci)
 	return sha1.Sum(podaci)
 }
 
@@ -94,9 +79,6 @@ func Kreiraj_cvorove(svi_listovi []*Node) *Node {
 		return cvorovi[0]
 	}
 	if len(cvorovi) > 1 {
-		//prvi := cvorovi[0]
-		//drugi := cvorovi[0]
-		// pomera se za po dva da bi pravio roditelja od 2 deteta
 		for i := 0; i < len(cvorovi); i += 2 {
 			if (i + 1) < len(cvorovi) {
 				prvi := cvorovi[i]
