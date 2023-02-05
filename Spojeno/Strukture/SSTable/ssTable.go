@@ -283,6 +283,35 @@ func NapraviSSTableJedanFajl(lCvor []*SkipList.SkipListNode, level int, index in
 
 }
 
+func Svi_kljucevi_jednog_fajla_jedan_fajl(f *os.File) []string {
+	size := make([]byte, 8)
+	f.Read(size)
+	keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
+	key_read := make([]byte, keySize)
+	f.Read(key_read)
+	size = make([]byte, 8)
+	f.Read(size)
+	keySize = binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
+	key_read = make([]byte, keySize)
+	f.Read(key_read)
+	var kljucevi []string
+	for true {
+		size := make([]byte, 8)
+		_, err := f.Read(size)
+		if err != nil {
+			return kljucevi
+		}
+		keySize := binary.LittleEndian.Uint64(size) //dobijamo velicinu kljuca
+		key_read := make([]byte, keySize)
+		f.Read(key_read)
+		key := string(key_read)
+		kljucevi = append(kljucevi, key)
+		of := make([]byte, 8)
+		f.Read(of)
+	}
+	return kljucevi
+}
+
 func Svi_kljucevi_jednog_fajla(f *os.File) []string {
 	f.Seek(0, 0)
 	var kljucevi []string
@@ -319,7 +348,7 @@ func Kompakcija(brojFajlova int, maxLevel int, level int, maxBloom int) {
 			path = strings.ReplaceAll(path1, `\`, "/")
 			datFileGlavni, errData = os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
 				"Id"+strconv.Itoa(brGlavni)+".db", os.O_RDONLY, 0777)
-			if errData!=nil{
+			if errData != nil {
 				panic(errData)
 			}
 		}

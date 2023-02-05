@@ -282,69 +282,135 @@ func menu(engine *Engine) {
 			}
 			break
 		case "4":
-			path1, _ := filepath.Abs("../Spojeno/Data/SSTableData")
-			path := strings.ReplaceAll(path1, `\`, "/")
-			_, _, index_files, _, _ := citanje.Svi_fajlovi(path)
-			var kljucevi []string
-			for i := range index_files {
-				indFile, err := os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
-				if err != nil {
-					path1, _ = filepath.Abs("../Projekat/Spojeno/Data/SSTableData")
-					path = strings.ReplaceAll(path1, `\`, "/")
-					_, _, index_files, _, _ = citanje.Svi_fajlovi(path)
-					indFile, err = os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
+			if engine.konfiguracije["da_li_je_vise_fajlova"] == 1 {
+				path1, _ := filepath.Abs("../Spojeno/Data/SSTableData")
+				path := strings.ReplaceAll(path1, `\`, "/")
+				_, _, index_files, _, _ := citanje.Svi_fajlovi(path)
+				var kljucevi []string
+				for i := range index_files {
+					indFile, err := os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
 					if err != nil {
-						panic(err)
+						path1, _ = filepath.Abs("../Projekat/Spojeno/Data/SSTableData")
+						path = strings.ReplaceAll(path1, `\`, "/")
+						_, _, index_files, _, _ = citanje.Svi_fajlovi(path)
+						indFile, err = os.OpenFile(path+"/"+index_files[i], os.O_RDONLY, 0666)
+						if err != nil {
+							panic(err)
+						}
 					}
+					kljucevi = append(kljucevi, SSTable.Svi_kljucevi_jednog_fajla(indFile)...)
 				}
-				kljucevi = append(kljucevi, SSTable.Svi_kljucevi_jednog_fajla(indFile)...)
-			}
-			if engine.da_li_je_skip {
-				for i := range engine.mems.Elementi.GetElements() {
-					if engine.mems.Elementi.GetElements()[i] != nil {
-						kljucevi = append(kljucevi, engine.mems.Elementi.GetElements()[i].GetKey())
-					}
-				}
-			} else {
-				for _, elem := range MemTableBTree.Niz {
-					kljucevi = append(kljucevi, elem.GetKey())
-				}
-			}
-			fmt.Println("Unesite podstring kljuca koji trazite:")
-			podstring := nabavi_vrednosti_brisanje()
-			fmt.Println("Unesite velicinu stranice: ")
-			r := bufio.NewReader(os.Stdin)
-			unos, _ := r.ReadString('\n')
-			unos = strings.Replace(unos, "\n", "", 1)
-			unos = strings.Replace(unos, "\r", "", 1)
-			velicina, err := strconv.ParseInt(unos, 10, 0)
-			if err != nil {
-				fmt.Println("Niste uneli broj!")
-				break
-			}
-			fmt.Println("Unesite redni broj stranice koju zelite: ")
-			r = bufio.NewReader(os.Stdin)
-			unos, _ = r.ReadString('\n')
-			unos = strings.Replace(unos, "\n", "", 1)
-			unos = strings.Replace(unos, "\r", "", 1)
-			redni_broj, err := strconv.ParseInt(unos, 10, 0)
-			if err != nil {
-				fmt.Println("Niste uneli broj!")
-				break
-			}
-			trazeni_kljucevi := List.List(podstring, int(velicina), int(redni_broj), kljucevi)
-			vrednosti := make([][]byte, len(trazeni_kljucevi))
-			for i := 0; i < len(trazeni_kljucevi); i++ {
 				if engine.da_li_je_skip {
-					_, value := citanje.CitajSkip(trazeni_kljucevi[i], engine.mems, engine.cache)
-					vrednosti[i] = value
+					for i := range engine.mems.Elementi.GetElements() {
+						if engine.mems.Elementi.GetElements()[i] != nil {
+							kljucevi = append(kljucevi, engine.mems.Elementi.GetElements()[i].GetKey())
+						}
+					}
 				} else {
-					_, value := citanje.CitajBTree(trazeni_kljucevi[i], engine.memb, engine.cache)
-					vrednosti[i] = value
+					for _, elem := range MemTableBTree.Niz {
+						kljucevi = append(kljucevi, elem.GetKey())
+					}
 				}
+				fmt.Println("Unesite podstring kljuca koji trazite:")
+				podstring := nabavi_vrednosti_brisanje()
+				fmt.Println("Unesite velicinu stranice: ")
+				r := bufio.NewReader(os.Stdin)
+				unos, _ := r.ReadString('\n')
+				unos = strings.Replace(unos, "\n", "", 1)
+				unos = strings.Replace(unos, "\r", "", 1)
+				velicina, err := strconv.ParseInt(unos, 10, 0)
+				if err != nil {
+					fmt.Println("Niste uneli broj!")
+					break
+				}
+				fmt.Println("Unesite redni broj stranice koju zelite: ")
+				r = bufio.NewReader(os.Stdin)
+				unos, _ = r.ReadString('\n')
+				unos = strings.Replace(unos, "\n", "", 1)
+				unos = strings.Replace(unos, "\r", "", 1)
+				redni_broj, err := strconv.ParseInt(unos, 10, 0)
+				if err != nil {
+					fmt.Println("Niste uneli broj!")
+					break
+				}
+				trazeni_kljucevi := List.List(podstring, int(velicina), int(redni_broj), kljucevi)
+				vrednosti := make([][]byte, len(trazeni_kljucevi))
+				for i := 0; i < len(trazeni_kljucevi); i++ {
+					if engine.da_li_je_skip {
+						_, value := citanje.CitajSkip(trazeni_kljucevi[i], engine.mems, engine.cache)
+						vrednosti[i] = value
+					} else {
+						_, value := citanje.CitajBTree(trazeni_kljucevi[i], engine.memb, engine.cache)
+						vrednosti[i] = value
+					}
+				}
+				fmt.Println("Vrednosti dobijene list-om su: ")
+				fmt.Println(vrednosti)
+			} else {
+				path1, _ := filepath.Abs("../Spojeno/Data/SSTableData")
+				path := strings.ReplaceAll(path1, `\`, "/")
+				data_files, _, _, _, _ := citanje.Svi_fajlovi(path)
+				var kljucevi []string
+				for i := range data_files {
+					indFile, err := os.OpenFile(path+"/"+data_files[i], os.O_RDONLY, 0666)
+					if err != nil {
+						path1, _ = filepath.Abs("../Projekat/Spojeno/Data/SSTableData")
+						path = strings.ReplaceAll(path1, `\`, "/")
+						data_files, _, _, _, _ = citanje.Svi_fajlovi(path)
+						indFile, err = os.OpenFile(path+"/"+data_files[i], os.O_RDONLY, 0666)
+						if err != nil {
+							panic(err)
+						}
+					}
+					kljucevi = append(kljucevi, SSTable.Svi_kljucevi_jednog_fajla_jedan_fajl(indFile)...)
+				}
+				if engine.da_li_je_skip {
+					for i := range engine.mems.Elementi.GetElements() {
+						if engine.mems.Elementi.GetElements()[i] != nil {
+							kljucevi = append(kljucevi, engine.mems.Elementi.GetElements()[i].GetKey())
+						}
+					}
+				} else {
+					for _, elem := range MemTableBTree.Niz {
+						kljucevi = append(kljucevi, elem.GetKey())
+					}
+				}
+				fmt.Println("Unesite podstring kljuca koji trazite:")
+				podstring := nabavi_vrednosti_brisanje()
+				fmt.Println("Unesite velicinu stranice: ")
+				r := bufio.NewReader(os.Stdin)
+				unos, _ := r.ReadString('\n')
+				unos = strings.Replace(unos, "\n", "", 1)
+				unos = strings.Replace(unos, "\r", "", 1)
+				velicina, err := strconv.ParseInt(unos, 10, 0)
+				if err != nil {
+					fmt.Println("Niste uneli broj!")
+					break
+				}
+				fmt.Println("Unesite redni broj stranice koju zelite: ")
+				r = bufio.NewReader(os.Stdin)
+				unos, _ = r.ReadString('\n')
+				unos = strings.Replace(unos, "\n", "", 1)
+				unos = strings.Replace(unos, "\r", "", 1)
+				redni_broj, err := strconv.ParseInt(unos, 10, 0)
+				if err != nil {
+					fmt.Println("Niste uneli broj!")
+					break
+				}
+				trazeni_kljucevi := List.List(podstring, int(velicina), int(redni_broj), kljucevi)
+				vrednosti := make([][]byte, len(trazeni_kljucevi))
+				for i := 0; i < len(trazeni_kljucevi); i++ {
+					if engine.da_li_je_skip {
+						_, value := citanje.CitajSkipJedanFajl(trazeni_kljucevi[i], engine.mems, engine.cache)
+						vrednosti[i] = value
+					} else {
+						_, value := citanje.CitajBTreeJedanFajl(trazeni_kljucevi[i], engine.memb, engine.cache)
+						vrednosti[i] = value
+					}
+				}
+				fmt.Println("Vrednosti dobijene list-om su: ")
+				fmt.Println(vrednosti)
 			}
-			fmt.Println("Vrednosti dobijene list-om su: ")
-			fmt.Println(vrednosti)
 			break
 		case "5":
 			//rangeScan()
