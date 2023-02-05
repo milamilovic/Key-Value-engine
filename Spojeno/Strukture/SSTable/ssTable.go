@@ -393,101 +393,89 @@ func Svi_kljucevi_jednog_fajla(f *os.File) []string {
 func Kompakcija(brojFajlova int, maxLevel int, level int, maxBloom int) {
 	path1, _ := filepath.Abs("../Spojeno/Data")
 	path := strings.ReplaceAll(path1, `\`, "/")
-	br := 0
-	for br < brojFajlova-1 {
-		skipList := SkipList.NapraviSkipList(10) //velicina koja
-		br++
-		bloom := BloomFilter.New_bloom(2*maxBloom, 0.05, level+1, br)
-		l := strconv.Itoa(bloom.Level)
-		i := strconv.Itoa(bloom.Index + 1)
-		f1, err := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
-			"Id"+strconv.Itoa(br)+".db", os.O_RDONLY, 0777)
-		if err != nil {
-			panic(err)
-		}
-		br++
-		f2, err := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
-			"Id"+strconv.Itoa(br)+".db", os.O_RDONLY, 0777)
-		if err != nil {
-			panic(err)
+
+	skipList := SkipList.NapraviSkipList(2 * maxBloom) //velicina koja
+	brGlavni := 0
+	for brGlavni < brojFajlova-1 {
+		brGlavni++
+		datFileGlavni, errData := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
+			"Id"+strconv.Itoa(brGlavni)+".db", os.O_RDONLY, 0777)
+		if errData != nil {
+			panic(errData)
 		}
 		for {
-			_, time1, tomb1, key_s1, val_s1, key1, val1, end1 := GetData(f1)
-			_, time2, tomb2, key_s2, val_s2, key2, val2, end2 := GetData(f2)
-			if end1 == false {
-				f1.Seek(-(4 + 8 + 1 + 8 + 8 + int64(key_s1) + int64(val_s1)), 1)
-				break
-			}
-			if end2 == false {
-				f1.Seek(-(4 + 8 + 1 + 8 + 8 + int64(key_s2) + int64(val_s2)), 1)
-				break
-			}
-
-			if key1 == key2 {
-				if tomb1[0] == tomb2[0] && tomb1[0] != 1 { //ne upisujemo ako je obrisan
-					if time1 < time2 {
-						skipList.Add(key2, val2)
-						BloomFilter.Add(key2, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
-
-					} else if time1 > time2 {
-						skipList.Add(key1, val1)
-						BloomFilter.Add(key1, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
-
-					} else {
-						skipList.Add(key1, val1)
-						BloomFilter.Add(key1, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
-
-					}
-				}
-			} else if key1 > key2 {
-				if tomb2[0] != 1 {
-					skipList.Add(key2, val2)
-					BloomFilter.Add(key2, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
-
-				}
-				f1.Seek(int64(4+8+1+8+8+key_s1+val_s1), 1)
-
-			} else {
-				if tomb1[0] != 1 {
-					skipList.Add(key1, val1)
-					BloomFilter.Add(key1, path+"/SSTableData/filterFileL"+l+"Id"+i+".txt")
-
-				}
-				f2.Seek(int64(4+8+1+8+8+key_s2+val_s2), 1)
-			}
-		}
-		for {
-			_, _, _, key_s1, val_s1, key1, val1, end1 := GetData(f1)
+			_, time1, tomb1, _, _, key1, val1, end1 := GetData(datFileGlavni)
+			fmt.Println(tomb1)
+			fmt.Println("Glavni kljuc")
+			fmt.Println(key1)
 			if end1 == true {
 				break
 			}
-			skipList.Add(key1, val1)
-			f1.Seek(int64(4+8+1+8+8+key_s1+val_s1), 1)
-		}
+			min := time1
+			kljucMin := key1
+			valMin := val1
+			br := 0
+			if tomb1[0] != 1 {
+				for br < brojFajlova-1 {
+					fmt.Println("Usao")
+					br++
+					if br == brGlavni {
+						continue
+					} else {
+						datFile, errData := os.OpenFile(path+"/SSTableData/DataFileL"+strconv.Itoa(level)+
+							"Id"+strconv.Itoa(br)+".db", os.O_RDONLY, 0777)
+						if errData != nil {
+							panic(errData)
+						}
+						fmt.Println("Cita drugi fajl")
+						fmt.Println("nije obrisan")
+						for {
+							_, time2, tomb2, _, _, key2, val2, end2 := GetData(datFile)
+							fmt.Println("Drugi")
+							fmt.Printf(key2)
+							if end2 == true {
+								break
+							}
+							if tomb2[0] == 1 {
+								fmt.Println("drugi jeste obrisan")
+								continue
+							} else {
+								if kljucMin == key2 {
+									if min < time2 {
+										min = time2
+										kljucMin = key2
+										valMin = val2
+									} else {
+										min = time1
+										kljucMin = key1
+										valMin = val1
+									}
+								} else {
+									if tomb2[0] != 1 {
+										skipList.Add(key2, val2)
+									}
 
-		for {
-			_, _, _, key_s2, val_s2, key2, val2, end2 := GetData(f2)
-			if end2 == true {
-				break
+								}
+
+							}
+							//datFile.Seek(4+8+1+8+8+int64(key_s2)+int64(val_s2), 1)
+						}
+					}
+					//datFile.Seek(4+8+1+8+8+int64(key_s1)+int64(val_s1), 1)
+				}
+
 			}
-			skipList.Add(key2, val2)
-			f1.Seek(int64(4+8+1+8+8+key_s2+val_s2), 1)
-		}
 
-		f1.Close()
-		f2.Close()
-		ObrisiFajlove(level, br)
-		index := NovoImeFajla(level + 1)
-		newData := skipList.GetElements()
-		NapraviSSTable(newData, level+1, index)
-		NapraviTOC(level+1, index)
-	}
-	index := NovoImeFajla(level + 1)
-	if index == brojFajlova {
-		if (level + 1) < maxLevel {
-			Kompakcija(brojFajlova, maxLevel, level+1, 2*maxBloom)
+			skipList.Add(kljucMin, valMin)
+			//datFileGlavni.Seek(4+8+1+8+8+int64(key_s1)+int64(val_s1), 1)
 		}
 	}
+
+	// ObrisiFajlove(level, br)
+	index := NovoImeFajla(level + 1)
+	newData := skipList.GetElements()
+	NapraviSSTable(newData, level+1, index)
+	// NapraviTOC(level+1, index)
 }
 func NapraviTOC(level int, index int) {
 	path1, _ := filepath.Abs("../Spojeno/Data")

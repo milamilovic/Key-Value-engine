@@ -87,9 +87,8 @@ func (memTable *MemTable) Flush(i int, j int) {
 func (memTable *MemTable) NapraviSSTable(i int, j int) {
 	sl := SkipList.NapraviSkipList(nizSize)
 	for _, elem := range Niz {
-		if elem.GetTombstone() == false {
-			sl.Add(elem.GetKey(), elem.GetValue())
-		}
+
+		sl.Add(elem.GetKey(), elem.GetValue())
 
 	}
 	//SSTable.NapraviSSTable(sl.GetElements(), 1, i)

@@ -183,7 +183,7 @@ func menu(engine *Engine) {
 		unos = strings.Replace(unos, "\r", "", 1)
 		switch unos {
 		case "k":
-			SSTable.Kompakcija(engine.indexBloom-1, engine.levelBloom, 1, 10)
+			SSTable.Kompakcija(engine.indexBloom, engine.levelBloom, 1, 10)
 			break
 		case "1":
 			key, value := nabavi_vrednosti_dodavanje()
