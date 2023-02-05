@@ -53,7 +53,7 @@ func CitajSkip(kljuc string, memTable *MemTableSkipList.MemTable, cache *Cache.C
 										if err != nil {
 											panic(err)
 										}
-										b, offset := SSTable.NadjiIndex(indFile, kljuc)
+										b, offset := SSTable.NadjiIndex(indFile, kljuc, true)
 										if b {
 											fmt.Println("Nasao u indexu")
 											datBr := 0
@@ -131,7 +131,7 @@ func CitajBTree(kljuc string, memTable *MemTableBTree.MemTable, cache *Cache.Cac
 										if err != nil {
 											panic(err)
 										}
-										b, offset := SSTable.NadjiIndex(indFile, kljuc)
+										b, offset := SSTable.NadjiIndex(indFile, kljuc, true)
 										if b {
 											fmt.Println("Nasao u indexu")
 											datBr := 0
@@ -212,4 +212,72 @@ func Svi_fajlovi(folder string) ([]string, []string, []string, []string, []strin
 
 	}
 	return data_files, filter_files, index_files, summary_files, toc_files
+}
+
+func CitajSkipJedanFajl(kljuc string, mt *MemTableSkipList.MemTable, c *Cache.Cache) (bool, []byte) {
+	path1, _ := filepath.Abs("../Spojeno/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	data_files, _, _, _, _ := Svi_fajlovi(path)
+	b, value := mt.NadjiElement(kljuc)
+	if b {
+		return b, value
+	} else {
+		b, _ := c.GetFromCache(kljuc) //ako mu pristupi stavi ga na pocetak cache-a
+		if b {
+			value, _ = c.NadjiUCache(kljuc)
+			return b, value
+		} else {
+			for _, i := range data_files {
+				fajl, err := os.OpenFile(path+"/SSTableData/"+i, os.O_RDONLY, 0777)
+				if err != nil {
+					panic(err)
+				}
+				b = SSTable.NadjiSummary(kljuc, fajl)
+				if b {
+					b, offset := SSTable.NadjiIndex(fajl, kljuc, false)
+					if b {
+						b, val := SSTable.NadjiElement(offset, fajl, kljuc)
+						if b {
+							return b, val
+						}
+					}
+				}
+			}
+		}
+	}
+	return false, nil
+}
+
+func CitajBTreeJedanFajl(kljuc string, mt *MemTableBTree.MemTable, c *Cache.Cache) (bool, []byte) {
+	path1, _ := filepath.Abs("../Spojeno/Data")
+	path := strings.ReplaceAll(path1, `\`, "/")
+	data_files, _, _, _, _ := Svi_fajlovi(path)
+	b, value := mt.NadjiElement(kljuc)
+	if b {
+		return b, value
+	} else {
+		b, _ := c.GetFromCache(kljuc) //ako mu pristupi stavi ga na pocetak cache-a
+		if b {
+			value, _ = c.NadjiUCache(kljuc)
+			return b, value
+		} else {
+			for _, i := range data_files {
+				fajl, err := os.OpenFile(path+"/SSTableData/"+i, os.O_RDONLY, 0777)
+				if err != nil {
+					panic(err)
+				}
+				b = SSTable.NadjiSummary(kljuc, fajl)
+				if b {
+					b, offset := SSTable.NadjiIndex(fajl, kljuc, false)
+					if b {
+						b, val := SSTable.NadjiElement(offset, fajl, kljuc)
+						if b {
+							return b, val
+						}
+					}
+				}
+			}
+		}
+	}
+	return false, nil
 }

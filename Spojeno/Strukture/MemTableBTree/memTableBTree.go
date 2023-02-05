@@ -18,6 +18,8 @@ type MemTable struct {
 }
 
 func KreirajMemTable(max, velicina int) *MemTable {
+	Niz = make([]*BTree.Node, 0)
+	nizSize = 0
 	elementi := BTree.MakeBtree(velicina)
 	return &MemTable{elementi, velicina, max, 0}
 }
@@ -78,11 +80,11 @@ func (memTable *MemTable) ProveriFlush() (bool, int) {
 	}
 }
 
-func (memTable *MemTable) Flush(i int) {
-	memTable.NapraviSSTable(i)
+func (memTable *MemTable) Flush(i int, j int) {
+	memTable.NapraviSSTable(i, j)
 }
 
-func (memTable *MemTable) NapraviSSTable(i int) {
+func (memTable *MemTable) NapraviSSTable(i int, j int) {
 	sl := SkipList.NapraviSkipList(nizSize)
 	for _, elem := range Niz {
 		if elem.GetTombstone() == false {
@@ -90,5 +92,10 @@ func (memTable *MemTable) NapraviSSTable(i int) {
 		}
 
 	}
-	SSTable.NapraviSSTable(sl.GetElements(), 1, i)
+	//SSTable.NapraviSSTable(sl.GetElements(), 1, i)
+	if j != 1 {
+		SSTable.NapraviSSTableJedanFajl(sl.GetElements(), 1, i)
+	} else {
+		SSTable.NapraviSSTable(sl.GetElements(), 1, i)
+	}
 }
